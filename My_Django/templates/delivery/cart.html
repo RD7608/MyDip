@@ -1,0 +1,17 @@
+<!-- orders/templates/orders/cart.html -->
+<h1>Корзина</h1>
+<form method="POST">
+    {% csrf_token %}
+    <ul>
+        {% for product in products %}
+            <li>
+                {{ product.name }} - {{ product.price }}
+                <input type="number" name="{{ product.id }}" min="1">
+                <a href="{% url 'remove_from_cart' product.id %}">Удалить</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <h3>Итого: {{ total_price }}</h3>
+    <button type="submit">Обновить количество</button>
+    <a href="{% url 'order_create' %}">Оформить заказ</a>
+</form>

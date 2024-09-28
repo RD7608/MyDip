@@ -1,17 +1,30 @@
-<!-- orders/templates/orders/cart.html -->
+{% extends "delivery/main.html" %}
+{% block content %}
 <h1>Корзина</h1>
-<form method="POST">
-    {% csrf_token %}
     <ul>
-        {% for product in products %}
-            <li>
-                {{ product.name }} - {{ product.price }}
-                <input type="number" name="{{ product.id }}" min="1">
-                <a href="{% url 'remove_from_cart' product.id %}">Удалить</a>
-            </li>
-        {% endfor %}
+        {% if cart_items %}
+            {% for item in cart_items %}
+            <div>
+            <p>{{ item.product.name }} - {{ item.product.price }} руб.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="0">
+                <button type="submit" name="update_quantity">Обновить</button>
+                <button type="submit" name="remove_item">Удалить</button>
+            </form>
+                <p>Итого: {{ item.total_price }} рублей</p>
+            </div>
+
+            {% endfor %}
+        <h3>Итого: {{ total_price }} рублей</h3>
+        {% else %}
+            <li>Корзина пуста</li>
+        {% endif %}
     </ul>
-    <h3>Итого: {{ total_price }}</h3>
-    <button type="submit">Обновить количество</button>
-    <a href="{% url 'order_create' %}">Оформить заказ</a>
+    <br>
+
+    <button type="submit">Оформить заказ</button>
 </form>
+
+{% endblock %}

@@ -3,9 +3,12 @@
 <h2>Оформление заказа</h2>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form }}
+    <br>
     <h3>Итоговая сумма: {{ total_price }} р.</h3>
+    <br>
     <button type="submit">Подтвердить заказ</button>
+
 </form>
 
 {% endblock content %}

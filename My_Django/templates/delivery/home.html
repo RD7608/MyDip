@@ -10,30 +10,30 @@
                 <h4>{{ item.product.name }}</h4>
                 <p>Цена: {{ item.product.price }} р.</p>
 
-                {% if item.quantity > 0 %}
                     <div class="cart-count">
                         <form action="{% url 'update_cart' item.product.id %}" method="post" style="display: inline;">
                             {% csrf_token %}
-                            <button type="submit" name="action" value="decrement">-</button>
-                            <span style="display: inline-block; width: 50px; text-align: center;">{{ item.quantity }}</span>
-                            <button type="submit" name="action" value="increment">+</button>
+                            {% if item.quantity > 0 %}
+                                <button type="submit" name="action" value="decrement">-</button>
+                                <span style="display: inline-block; width: 50px; text-align: center;">{{ item.quantity }}</span>
+                                <button type="submit" name="action" value="increment">+</button>
+                            {% else %}
+                                <button type="submit" name="action" value="add">В корзину</button>
+                            {% endif %}
                         </form>
                     </div>
-                {% else %}
-                    <form action="{% url 'add_to_cart' item.product.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit">В корзину</button>
-                    </form>
-                {% endif %}
             </div>
-                {% if forloop.counter|divisibleby:3 and not forloop.last %}
-                    </div><div class="row">
-                {% endif %}
             {% endfor %}
         {% else %}
             <li>Заполните справочник товаров</li>
         {% endif %}
     </div>
 </div>
+
+        {% if cart_items_count > 0 %}
+            <button><a class="nav-item nav-link" href="{% url 'cart_view' %}">Перейти в корзину</a></button>
+            <button><a class="nav-item nav-link" href="{% url 'order_create' %}">Оформить заказ</a></button>
+        {% endif %}
+
 
 {% endblock content %}

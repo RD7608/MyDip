@@ -1,2 +1,25 @@
-<h2>Спасибо за ваш заказ!</h2>
-<p>Ваш заказ был успешно оформлен.</p>
+{% extends "delivery/main.html" %}
+{% block content %}
+
+<div class="container">
+    <h1>Успех!</h1>
+    <p>{{ message }}</p>
+
+    <div class="order-details">
+        <h2>Детали заказа</h2>
+        <p>Номер заказа: <strong>{{ order.order_number }}</strong></p>
+        <p>Получатель: <strong>{{ order.customer_name }}</strong></p>
+        <p>Город: <strong>{{ order.city}}</strong></p>
+        <p>Адрес: <strong>{{ order.address }}</strong></p>
+        <p>Дата доставки: <strong>{{ order.delivery_date }}</strong></p>
+        <p>Сумма заказа: <strong>{{ order.total_price }} ₽</strong></p>
+        <p>Статус заказа: <strong>{% if order.is_new %}Новый{% endif %}
+                                {% if order.is_confirmed %}Подтвержден{% endif %}
+                                {% if order.is_delivered %}Доставлен{% endif %}
+                                {% if order.is_canceled %}Отменен{% endif %}
+                        </strong></p>
+    </div>
+
+    <a href="{% url 'delivery-home' %}" class="button">Перейти на главную</a>
+</div>
+{% endblock content %}

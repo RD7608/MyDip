@@ -1,5 +1,5 @@
-﻿{% load static %}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
+{% load static %}
 <html>
 <head>
 
@@ -8,69 +8,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap, иконки и шрифт -->
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-     <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,400italic,500,500italic,700,700italic,900italic,900' rel='stylesheet' type='text/css'>   
-     <link href='https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,400italic,500,500italic,700,700italic,900italic,900'
+          rel='stylesheet' type='text/css'>
+    <link href='https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
 
     {% if title %}
-        <title>{{ title }}</title>
+    <title>{{ title }}</title>
     {% else %}
-        <title>Доставка воды</title>
+    <title>Доставка воды</title>
     {% endif %}
 </head>
 <body>
-    <header class="site-header">
-      <nav class="navbar navbar-expand-md navbar-dark bg-blue fixed-top">
+<header class="site-header">
+    <nav class="navbar navbar-expand-md navbar-dark bg-blue fixed-top">
         <div class="container">
-          <a class="navbar-brand mr-4" href="{% url 'delivery-home' %}"><i class='bx bxs-home bx-tada-hover'></i> Доставка воды</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarToggle">
-            <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{% url 'delivery-order' %}">Заказ</a>
-              <a class="nav-item nav-link" href="{% url 'delivery-news' %}">Новости</a>
-              <a class="nav-item nav-link" href="{% url 'delivery-about' %}">О нас</a>
+            <a class="navbar-brand mr-4" href="{% url 'delivery-home' %}"><i class='bx bxs-home bx-tada-hover'></i>
+                Доставка воды</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
+                    aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="{% url 'delivery-news' %}">Новости</a>
+                    <a class="nav-item nav-link" href="{% url 'delivery-about' %}">График доставки</a>
+                    <!--              <a class="nav-item nav-link" href="{% url 'delivery-catalog' %}">Каталог</a>
+                                    -->
+                    {% if user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{% url 'delivery-order' %}">Заказы {{user.username}}</a>
+                    {% endif %}
+                </div>
+                <!-- Правая часть навигационной панели -->
+                <div class="navbar-nav">
+                    <a class="nav-item nav-link" href="{% url 'cart_view' %}">
+                        Корзина
+                        {% if cart_items_count > 0 %}
+                        (<span id="cart-count">{{ cart_items_count }}</span>)
+                        {% else %}
+                        (0)
+                        {% endif %}
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{% url 'profile' %}">Профиль</a>
+                    <a class="nav-item nav-link" href="{% url 'logout' %}">Выход</a>
+                    {% else %}
+                    <a class="nav-item nav-link" href="{% url 'login' %}">Вход</a>
+                    <a class="nav-item nav-link" href="{% url 'register' %}">Регистрация</a>
+                    {% endif %}
+                </div>
             </div>
-            <!-- Правая часть навигационной панели -->
-            <div class="navbar-nav">
-              <a class="nav-item nav-link" href="{% url 'cart_view' %}">
-                  Корзина
-                  {% if cart_items_count > 0 %}
-                    (<span id="cart-count">{{ cart_items_count }}</span>)
-                  {% else %}
-                    (0)
-                  {% endif %}
-              </a>
-<!--          <a class="nav-item nav-link" href="#">Вход</a>
-              <a class="nav-item nav-link" href="#">Регистрация</a>
--->
-            </div>
-          </div>
         </div>
-      </nav>
-    </header>
+    </nav>
+</header>
 
-    <main role="main" class="container">
-      <div class="row">
+<main role="main" class="container">
+    <div class="row">
         <div class="col-md-8">
-          {% block content %}{% endblock %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
         </div>
         <div class="col-md-4">
 
         </div>
-      </div>
+    </div>
 
-    </main>
+</main>
 
-    <footer class="text-center bg-grey">
-      <h5><a href="{% url 'delivery-home' %}">© Доставка воды 2024 (Django)</a></h5>
-    </footer>
+<footer class="text-center bg-grey">
+    <h5><a href="{% url 'delivery-home' %}">© Доставка воды 2024 (Django)</a></h5>
+</footer>
 
-    <!-- Дополнительные скрипты JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<!-- Дополнительные скрипты JavaScript -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,30 +1,30 @@
 {% extends "delivery/main.html" %}
 {% block content %}
 <h1>Корзина</h1>
-    <ul>
-        {% if cart_items %}
-            {% for item in cart_items %}
-            <div>
-            <p>{{ item.product.name }} - {{ item.product.price }} руб.</p>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="product_id" value="{{ item.product.id }}">
-                <input type="number" name="quantity" value="{{ item.quantity }}" min="0">
-                <button type="submit" name="update_quantity">Обновить</button>
-                <button type="submit" name="remove_item">Удалить</button>
-            </form>
-                <p>Итого: {{ item.total_price }} рублей</p>
-            </div>
+<ul>
+    {% if cart_items %}
+    {% for item in cart_items %}
+    <p>{{ item.product.name }} - {{ item.product.price }} руб.| На сумму: {{ item.total_price }} рублей</p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ item.product.id }}">
+        <input type="number" name="quantity" value="{{ item.quantity }}" min="0">
+        <button type="submit" name="update_quantity">Обновить</button>
+        <button type="submit" name="remove_item">Удалить</button>
+        <br><br>
+    {% endfor %}
+        <br>
+        <h3>Всего: {{ total_price }} рублей</h3>
+        <br>
+        <button type="submit" name="order_create">Оформить заказ</button>
+    </form>
 
-            {% endfor %}
-        <h3>Итого: {{ total_price }} рублей</h3>
-        {% else %}
-            <li>Корзина пуста</li>
-        {% endif %}
-    </ul>
-    <br>
+    {% else %}
+    <li>Корзина пуста</li>
+    <li><a href="{% url 'delivery-home' %}">Перейти на главную</a></li>
+    {% endif %}
+</ul>
+<br>
 
-    <button type="submit">Оформить заказ</button>
-</form>
 
 {% endblock %}

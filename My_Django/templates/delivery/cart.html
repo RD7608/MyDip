@@ -4,7 +4,7 @@
 <ul>
     {% if cart_items %}
     {% for item in cart_items %}
-    <p>{{ item.product.name }} - {{ item.product.price }} руб.| На сумму: {{ item.total_price }} рублей</p>
+    <p>{{ item.product.name }} - {{ item.product.price }} руб.| На сумму: {{ item.total_price }} руб.</p>
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ item.product.id }}">
@@ -14,7 +14,7 @@
         <br><br>
     {% endfor %}
         <br>
-        <h3>Всего: {{ total_price }} рублей</h3>
+        <h3>Всего: {{ total_price }} руб.</h3>
         <br>
         <button type="submit" name="order_create">Оформить заказ</button>
     </form>

@@ -34,26 +34,27 @@
             <div class="collapse navbar-collapse" id="navbarToggle">
                 <div class="navbar-nav mr-auto">
                     <a class="nav-item nav-link" href="{% url 'delivery-news' %}">Новости</a>
-                    <a class="nav-item nav-link" href="{% url 'delivery-about' %}">График доставки</a>
+                    <a class="nav-item nav-link" href="{% url 'delivery-about' %}">О нас</a>
                     <!--              <a class="nav-item nav-link" href="{% url 'delivery-catalog' %}">Каталог</a>
                                     -->
-                    {% if user.is_authenticated %}
-                    <a class="nav-item nav-link" href="{% url 'delivery-order' %}">Заказы {{user.username}}</a>
-                    {% endif %}
                 </div>
                 <!-- Правая часть навигационной панели -->
                 <div class="navbar-nav">
                     <a class="nav-item nav-link" href="{% url 'cart_view' %}">
                         Корзина
                         {% if cart_items_count > 0 %}
-                        (<span id="cart-count">{{ cart_items_count }}</span>)
+                            (<span id="cart-count" >{{ cart_items_count }}</span>)
                         {% else %}
-                        (0)
+                            (0)
                         {% endif %}
                     </a>
                     {% if user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{% url 'delivery-order' %}">Заказы {{user.username}}</a>
                     <a class="nav-item nav-link" href="{% url 'profile' %}">Профиль</a>
-                    <a class="nav-item nav-link" href="{% url 'logout' %}">Выход</a>
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Выйти</button>
+                        </form>
                     {% else %}
                     <a class="nav-item nav-link" href="{% url 'login' %}">Вход</a>
                     <a class="nav-item nav-link" href="{% url 'register' %}">Регистрация</a>
@@ -77,7 +78,16 @@
             {% block content %}{% endblock %}
         </div>
         <div class="col-md-4">
+             <div class="content-section">
+           <h3>График доставки:</h3>
+            <p>Доставка заявок осуществляется с понедельника по субботу во второй половине дня. </p>
+            <strong>В воскресенье доставки нет! </strong>
+            <br><br>
 
+            <p>Заявки, сделанные с 08.00 до 10.00 исполняются в этот же день. <br></p>
+            <p>Заявки, сделанные после указанного времени — на следующий день. <br> </p>
+            <p>Заявки на субботу - принимаются в пятницу.</p>
+          </div>
         </div>
     </div>
 

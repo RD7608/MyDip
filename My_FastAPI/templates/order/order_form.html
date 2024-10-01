@@ -1,0 +1,27 @@
+﻿{% extends "delivery/main.html" %}
+{% block content %}
+<h2>Оформление заказа</h2>
+<br>
+{% if cart_items %}
+    {% for item in cart_items %}
+        <p>{{ item.product.name }} - {{ item.quantity }} шт. по цене {{ item.product.price }} руб.| На сумму: {{ item.total_price }} руб.</p>
+    {% endfor%}
+<h4>Всего на  сумму: {{ total_price }} р.</h4>
+<hr width="100%" size="2" color="blue" noshade>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Подтвердить заказ</button>
+    <br>
+</form>
+<hr width="100%" size="2" color="blue" noshade>
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+    {% endfor %}
+{% else %}
+    <li>Корзина пуста</li>
+    <li><a href="{% url 'delivery-home' %}">Перейти на главную</a></li>
+{% endif %}
+{% endblock content %}

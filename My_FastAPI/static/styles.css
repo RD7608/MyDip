@@ -124,3 +124,41 @@ footer a:hover {
 .success {
     color: green;
 }
+
+.product-grid ul {
+    list-style-type: none; /* Убираем маркеры списка */
+    padding: 0; /* Убираем отступы */
+}
+
+.product-item {
+    display: flex; /* Используем flexbox для выравнивания элементов в строку */
+    align-items: center; /* Центрируем по вертикали */
+    margin-bottom: 10px; /* Отступ между элементами */
+}
+
+.product-info {
+    margin-right: 10px; /* Отступ между информацией о продукте и кнопками */
+}
+
+.add-to-cart {
+    margin-left: 20px; /* Увеличиваем отступ между кнопкой и элементом 'Подробнее' */
+    padding: 5px 10px; /* Добавляем внутренние отступы для кнопки */
+    background-color: grey; /* Цвет фона кнопки */
+    border: none; /* Убираем рамку */
+    border-radius: 5px; /* Закругляем углы */
+    cursor: pointer; /* Указатель при наведении */
+}
+
+.add-to-cart a {
+    text-decoration: none; /* Убираем подчеркивание с ссылки внутри кнопки */
+    color: white; /* Цвет текста в кнопке */
+}
+
+.add-to-cart:hover {
+    background-color: #45a049; /* Цвет при наведении */
+    color: black; /* Цвет текста в кнопке */
+}
+
+.add-to-cart a:hover {
+    color: black; /* Цвет текста в кнопке */
+}

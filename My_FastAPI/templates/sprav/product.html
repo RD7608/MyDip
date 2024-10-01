@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+{% block content %}
+<h1>Детали товара</h1>
+<div>
+    <h2>{{ product.name }}</h2>
+    <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
+    <p>Описание: {{ product.description }}</p>
+    <p>Цена: {{ product.price }} руб.</p>
+    <p>В наличии: {{ product.is_active }}</p>
+    <p>Доступен для заказа: {{ product.is_available }}</p>
+    <br>
+    <a href="/spr/products">Каталог</a>
+</div>
+{% endblock content %}

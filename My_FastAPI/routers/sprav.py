@@ -1,74 +1,80 @@
-from fastapi import APIRouter , Depends , status , HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from backend.db_depends import get_db
 from typing import Annotated
-from models import Product , City , Order
-from schemas import CreateProduct , UpdateProduct , CreateCity
-from sqlalchemy import insert , select , update , delete
+from models import Product, City, Order
+from schemas import CreateProduct, UpdateProduct, CreateCity
+from sqlalchemy import insert, select, update, delete
 from sqlalchemy import exc
 
-router = APIRouter ( prefix="/spr" , tags=["spr"] )
+
+router = APIRouter(prefix="/spr", tags=["spr"])
 
 
-@router.get ( "/products" )
-async def get_products(db: Session = Depends ( get_db )):
-    return db.query ( Product ).all ()
+@router.get("/products", response_class=HTMLResponse)
+async def get_products(request: Request, db: Session = Depends(get_db)):
+    from main import templates
+    products = db.query(Product).all()
+    return templates.TemplateResponse("catalog.html", {"request": request, "products": products})
 
 
-@router.get ( "/product_id" )
-async def product_by_id(db: Annotated[Session , Depends ( get_db )] , product_id: int):
-    product = db.scalar ( select ( Product ).where ( Product.id == product_id ) )
+@router.get("/product/{product_id}", response_class=HTMLResponse)
+async def product_by_id(request: Request, product_id: int, db: Session = Depends(get_db)):
+    from main import templates
+    # Получаем товар по id
+    query = select(Product).where(Product.id == product_id)
+    product = db.scalar(query)
     if product:
-        return product
+        return templates.TemplateResponse("sprav/product.html", {"request": request, "product": product})
     else:
-        raise HTTPException ( status_code=404 ,
-                              detail="Товар не найден" )
+        raise HTTPException(status_code=404, detail="Товар не найден")
 
 
-@router.post ( "/create_product" )
-async def create_product(db: Annotated[Session , Depends ( get_db )] , product: CreateProduct):
+@router.post("/create_product")
+async def create_product(db: Annotated[Session, Depends(get_db)], product: CreateProduct):
     try:
-        new_product = Product ( name=product.name , description=product.description , image=product.image ,
-                          price=product.price , is_active=product.is_active , is_available=product.is_available )
-        db.add ( new_product )
-        db.commit ()  # Сохраняем изменения
-        return {"status_code": status.HTTP_200_OK ,
+        new_product = Product(name=product.name, description=product.description, image=product.image,
+                              price=product.price, is_active=product.is_active, is_available=product.is_available)
+        db.add(new_product)
+        db.commit()  # Сохраняем изменения
+        return {"status_code": status.HTTP_200_OK,
                 "transaction": "Товар добавлен"}
     except exc.SQLAlchemyError as e:
-        db.rollback ()
-        raise HTTPException ( status_code=500 ,
-                              detail=f"Ошибка при добавлении товара: {str ( e )}" )
+        db.rollback()
+        raise HTTPException(status_code=500,
+                            detail=f"Ошибка при добавлении товара: {str(e)}")
 
 
-@router.put ( "/update_product" )
-async def update_product(db: Annotated[Session , Depends ( get_db )] , product_id: int , product: UpdateProduct):
-    existing_product = db.scalar ( select ( Product ).where ( Product.id == product_id ) )
+@router.put("/update_product")
+async def update_product(db: Annotated[Session, Depends(get_db)], product_id: int, product: UpdateProduct):
+    existing_product = db.scalar(select(Product).where(Product.id == product_id))
     if existing_product:
-        db.execute ( update ( Product ).where ( Product.id == product_id ).values ( price=product.price ,
-                                                                                    is_active=product.is_active ,
-                                                                                    is_available=product.is_available ) )
-        db.commit ()
-        return {"status_code": status.HTTP_200_OK ,
+        db.execute(update(Product).where(Product.id == product_id).values(price=product.price,
+                                                                          is_active=product.is_active,
+                                                                          is_available=product.is_available))
+        db.commit()
+        return {"status_code": status.HTTP_200_OK,
                 "transaction": "Товар обновлен!"}
     else:
-        raise HTTPException ( status_code=404 ,
-                              detail="Товар не найден" )
+        raise HTTPException(status_code=404,
+                            detail="Товар не найден")
 
 
-@router.get ( "/cities" )
-async def get_cities(db: Session = Depends ( get_db )):
-    return db.query ( City ).all ()
+@router.get("/cities")
+async def get_cities(db: Session = Depends(get_db)):
+    return db.query(City).all()
 
 
-@router.post ( "/create_city" )
-async def create_city(db: Annotated[Session , Depends ( get_db )] , city: CreateCity):
+@router.post("/create_city")
+async def create_city(db: Annotated[Session, Depends(get_db)], city: CreateCity):
     try:
-        new_city = City ( name=city.name , abbreviation=city.abbreviation )
-        db.add ( new_city )
-        db.commit ()
-        return {"status_code": status.HTTP_200_OK ,
+        new_city = City(name=city.name, abbreviation=city.abbreviation)
+        db.add(new_city)
+        db.commit()
+        return {"status_code": status.HTTP_200_OK,
                 "transaction": "Город добавлен"}
     except exc.SQLAlchemyError as e:
-        db.rollback ()
-        raise HTTPException ( status_code=500 ,
-                              detail=f"Ошибка при добавлении города: {str ( e )}" )
+        db.rollback()
+        raise HTTPException(status_code=500,
+                            detail=f"Ошибка при добавлении города: {str(e)}")

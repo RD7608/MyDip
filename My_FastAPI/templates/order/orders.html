@@ -1,0 +1,43 @@
+﻿{% extends "delivery/main.html" %}
+{% block content %}
+    <div class="container">
+        <h1>Список заказов {{ user.username }}</h1>
+
+        {% if user.is_authenticated %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Номер заказа</th>
+                        <th>Город</th>
+                        <th>Сумма</th>
+                        <th>Дата доставки</th>
+                        <th>Дата заказа</th>
+                        <th>Статусы</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                         <tr>
+                            <td>{{ order.order_number }}</td>
+                            <td>{{ order.city.name }}</td>
+                            <td>{{ order.total_price }}</td>
+                            <td>{{ order.delivery_date}}</td>
+                            <td>{{ order.created_date|date:"d-m-Y H:i" }}</td>
+                            <td>{% if order.is_new %}Новый{% endif %}
+                                {% if order.is_confirmed %}Подтвержден{% endif %}
+                                {% if order.is_delivered %}Доставлен{% endif %}
+                                {% if order.is_canceled %}Отменен{% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">Здесь нет заказов.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Чтобы просмотреть свои заказы, вам необходимо <a href="{% url 'registration' %}">зарегистрироваться</a>.</p>
+        {% endif %}
+    </div>
+ {% endblock %}

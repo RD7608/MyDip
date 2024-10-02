@@ -1,0 +1,25 @@
+{% extends "main.html" %}
+{% block content %}
+
+<h1>Корзина покупок</h1>
+    {% for item in product_items %}
+    <div>
+        <h2>{{ item.name }}</h2>
+        <p>Цена: {{ item.price }}</p>
+        <p>Количество: {{ item.quantity }}</p>
+        <p>Сумма: {{ item.total_price }}</p>
+    </div>
+    {% endfor %}
+
+    {% if cart_items_count > 0 %}
+        <form action="/cart/clear" method="post">
+            <input type="submit" value="Очистить корзину">
+        </form>
+    <br>
+    <h5><button><a href="/order">Оформить заказ</a> </button></h5>
+    {% else %}
+    <h5>Корзина пуста</h5>
+    <a href="/">Вернуться на главную</a>
+    {% endif %}
+
+{% endblock %}

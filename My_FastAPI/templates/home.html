@@ -1,4 +1,4 @@
-﻿{% extends "main.html" %}
+{% extends "main.html" %}
 {% block content %}
 
 <div class="products">
@@ -10,16 +10,19 @@
                 <h4>{{ product.name }}</h4>
                 <p>Цена: {{ product.price }} р.</p>
 
-                    <div class="cart-count">
-                        <form action="/cart/update/{{ product.id }}" method="post" style="display: inline;">>
-                                <button type="submit" name="action" value="decrement">-</button>
-
-                                <button type="submit" name="action" value="increment">+</button>
-                        </form>
-                        <form action="/cart/add/{{ product.id }}" method="post" style="display: inline;">
-                                <button type="submit" name="action" value="add" class="add-to-cart">Заказать</button>
-                        </form>
-                    </div>
+                <div class="cart-count">
+                    <form action="/cart/add/{{ product.id }}/-1" method="post" style="display: inline;">
+                        <button type="submit" name="action" value="decrement"
+                                {% if product.quantity == 0 %}disabled{% endif %}>-</button>
+                    </form>
+                    <p>{{ product.quantity }}</p>
+                    <form action="/cart/add/{{ product.id }}/1" method="post" style="display: inline;">
+                        <button type="submit" name="action" value="increment">+</button>
+                    </form>
+                    <form action="/cart/add/{{ product.id }}/1" method="post" style="display: inline;">
+                        <button type="submit" name="action" class="add-to-cart">Заказать</button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         {% else %}
@@ -28,9 +31,7 @@
     </div>
 </div>
 
-
-            <button><a class="nav-item nav-link" href="/cart/">Перейти в корзину</a></button>
-            <button><a class="nav-item nav-link" href="/order">Оформить заказ</a></button>
-
+<button><a class="nav-item nav-link" href="/cart/">Перейти в корзину</a></button>
+<button><a class="nav-item nav-link" href="/order">Оформить заказ</a></button>
 
 {% endblock content %}

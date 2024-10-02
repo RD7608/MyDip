@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
-from backend.db_depends import get_db
-from typing import Annotated
-from models import Product, City, Order
-from schemas import CreateProduct, UpdateProduct, CreateCity
 from sqlalchemy import insert, select, update, delete
 from sqlalchemy import exc
+from typing import Annotated
+from backend.db_depends import get_db
+from models import Product, City, Order
+from schemas import CreateProduct, UpdateProduct, CreateCity
+from config import templates
 
 
 router = APIRouter(prefix="/spr", tags=["spr"])
@@ -14,14 +15,12 @@ router = APIRouter(prefix="/spr", tags=["spr"])
 
 @router.get("/products", response_class=HTMLResponse)
 async def get_products(request: Request, db: Session = Depends(get_db)):
-    from main import templates
     products = db.query(Product).all()
-    return templates.TemplateResponse("catalog.html", {"request": request, "products": products})
+    return templates.TemplateResponse("sprav/catalog.html", {"request": request, "products": products})
 
 
 @router.get("/product/{product_id}", response_class=HTMLResponse)
 async def product_by_id(request: Request, product_id: int, db: Session = Depends(get_db)):
-    from main import templates
     # Получаем товар по id
     query = select(Product).where(Product.id == product_id)
     product = db.scalar(query)

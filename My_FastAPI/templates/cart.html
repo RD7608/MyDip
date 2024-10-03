@@ -1,25 +1,33 @@
 {% extends "main.html" %}
+
 {% block content %}
-
-<h1>Корзина покупок</h1>
-    {% for item in product_items %}
-    <div>
-        <h2>{{ item.name }}</h2>
-        <p>Цена: {{ item.price }}</p>
-        <p>Количество: {{ item.quantity }}</p>
-        <p>Сумма: {{ item.total_price }}</p>
-    </div>
-    {% endfor %}
-
-    {% if cart_items_count > 0 %}
-        <form action="/cart/clear" method="post">
-            <input type="submit" value="Очистить корзину">
+<h1>Корзина</h1>
+<ul>
+    {% if cart_items %}
+        {% for item in cart_items %}
+        <li>
+            <p>{{ item.product.name }} - {{ item.product.price }} руб.| На сумму: {{ item.total_price }} руб.</p>
+            <form method="post" action="{{ url_for('update_cart') }}">
+                <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="0">
+                <button type="submit">Обновить</button>
+                <button type="submit" formaction="{{ url_for('remove_item', product_id=item.product.id) }}">Удалить</button>
+            </form>
+        </li>
+        {% endfor %}
+        <br>
+        <h3>Всего: {{ total_price }} руб.</h3>
+        <form method="post" action="{{ url_for('order_create') }}">
+            <button type="submit">Оформить заказ</button>
         </form>
-    <br>
-    <h5><button><a href="/order">Оформить заказ</a> </button></h5>
+        <br>
+        <form method="post" action="{{ url_for('clear_cart') }}">
+            <button type="submit">Очистить корзину</button>
+        </form>
     {% else %}
-    <h5>Корзина пуста</h5>
-    <a href="/">Вернуться на главную</a>
+        <li>Корзина пуста</li>
+        <li><a href="/">Перейти на главную</a></li>
     {% endif %}
-
+</ul>
+<br>
 {% endblock %}

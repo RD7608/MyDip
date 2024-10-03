@@ -30,7 +30,7 @@ async def order_by_id(db: Annotated[Session, Depends(get_db)], order_id: int):
 
 
 @router.post("/create")
-async def create_order(db: Annotated[Session, Depends(get_db)], order: CreateOrder):
+async def order_create(db: Annotated[Session, Depends(get_db)], order: CreateOrder):
     order_number = get_next_order_number(order.city, db)
     new_order = Order(
         number=order_number,
@@ -53,7 +53,7 @@ async def create_order(db: Annotated[Session, Depends(get_db)], order: CreateOrd
 
 
 @router.put("/update")
-async def update_order(db: Annotated[Session, Depends(get_db)], order_id: int, order: UpdateOrder):
+async def order_update(db: Annotated[Session, Depends(get_db)], order_id: int, order: UpdateOrder):
     existing_order = db.scalar(select(Order).where(Order.id == order_id))
     if existing_order:
         db.execute(update(Order).where(Order.id == order_id).values(customer_name=order.customer_name,
@@ -69,7 +69,7 @@ async def update_order(db: Annotated[Session, Depends(get_db)], order_id: int, o
 
 
 @router.put("/cancel")
-async def cancel_order(db: Annotated[Session, Depends(get_db)], order_id: int):
+async def order_cancel(db: Annotated[Session, Depends(get_db)], order_id: int):
     existing_order = db.scalar(select(Order).where(Order.id == order_id))
     if existing_order:
         db.execute(update(Order).where(Order.id == order_id).values(is_new=False,

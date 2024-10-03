@@ -6,9 +6,12 @@
     {% for product in products %}
         <li class="product-item">
             <span class="product-info">{{ product.name }} - {{ product.price }} руб.</span>
-            <a href="/spr/product/{{ product.id }}">Подробнее   </a>
+            <a href="/spr/product/{{ product.id }}">Подробнее...</a>
             {% if product.is_available %}
-                <button type="button" class="add-to-cart"><a href="/cart/{{ product.id }}">Заказать</a></button>
+            <form method="post" action="{{ url_for('add_item', product_id=product.id) }}">
+                <input type="hidden" name="next" value="{{ request.url }}">
+                <button type="submit" class="add-to-cart">Добавить в корзину</button>
+            </form>
             {% endif %}
         </li>
     {% endfor %}

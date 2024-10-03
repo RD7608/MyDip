@@ -4,34 +4,89 @@
 <div class="products">
     <div class="row">
         {% if products %}
-            {% for product in products %}
-            <div class="product col-4">
-                <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
-                <h4>{{ product.name }}</h4>
-                <p>Цена: {{ product.price }} р.</p>
+        {% for product in products %}
+        <div class="product col-4">
+            <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
+            <h4>{{ product.name }}</h4>
+            <p>Цена: {{ product.price }} р.</p>
 
-                <div class="cart-count">
-                    <form action="/cart/add/{{ product.id }}/-1" method="post" style="display: inline;">
-                        <button type="submit" name="action" value="decrement"
-                                {% if product.quantity == 0 %}disabled{% endif %}>-</button>
-                    </form>
-                    <p>{{ product.quantity }}</p>
-                    <form action="/cart/add/{{ product.id }}/1" method="post" style="display: inline;">
-                        <button type="submit" name="action" value="increment">+</button>
-                    </form>
-                    <form action="/cart/add/{{ product.id }}/1" method="post" style="display: inline;">
-                        <button type="submit" name="action" class="add-to-cart">Заказать</button>
-                    </form>
-                </div>
+            <div class="cart-count">
+                <form action="/cart/update/{{ product.id }}" method="post" style="display: inline;">
+                     {% set quantity = cart.get(product.id|string, 0) %}
+
+                     {% if quantity == 0 %}
+                         <button type="submit" name="action" value="add" class="add-to-cart">В корзину</button>
+                     {% else %}
+                         <!-- Кнопка для уменьшения количества -->
+                         <button type="submit" name="action" value="decrement">-</button>
+                         <!-- Отображение текущего количества -->
+                         <span class="product-quantity">{{ quantity }}</span>
+                         <!-- Кнопка для увеличения количества -->
+                         <button type="submit" name="action" value="increment">+</button>
+                     {% endif %}
+                </form>
             </div>
-            {% endfor %}
+        </div>
+        {% endfor %}
         {% else %}
-            <li>Заполните справочник товаров</li>
+        <li>Заполните справочник товаров</li>
         {% endif %}
     </div>
 </div>
-
+<br><br>
 <button><a class="nav-item nav-link" href="/cart/">Перейти в корзину</a></button>
 <button><a class="nav-item nav-link" href="/order">Оформить заказ</a></button>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.cart-count button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault(); // Предотвращаем стандартное поведение кнопки
+
+                const cartItem = button.closest('.product');
+                const productId = cartItem.querySelector('form').getAttribute('action').split('/')[3]; // Получаем ID продукта
+                const action = button.getAttribute('value'); // Получаем действие (increment или decrement)
+
+                // AJAX запрос для обновления корзины
+                fetch(`/cart/update/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: action
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        return response.json(); // Обрабатываем JSON-ответ
+                    } else {
+                        throw new Error('Ошибка обновления корзины'); // Обработка ошибки
+                    }
+                }).then(data => {
+                    // Обновляем текущее количество товара
+                    const quantitySpan = cartItem.querySelector('.product-quantity');
+                    quantitySpan.textContent = data.quantity;
+
+                    // Условие для отображения кнопки "В корзину" и скрытия/показа кнопок +/-
+                    if (data.quantity == 0) {
+                        cartItem.querySelector('.add-to-cart').style.display = 'inline';
+                        quantitySpan.textContent = '0'; // Показать "0"
+                        // Скрыть кнопки +/- если количество 0
+                        cartItem.querySelectorAll('button[value="increment"], button[value="decrement"]').forEach(btn => {
+                            btn.style.display = 'none';
+                        });
+                    } else {
+                        cartItem.querySelector('.add-to-cart').style.display = 'none';
+                        // Показать кнопки +/- если количество больше 0
+                        cartItem.querySelectorAll('button[value="increment"], button[value="decrement"]').forEach(btn => {
+                            btn.style.display = 'inline';
+                        });
+                    }
+                }).catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            });
+        });
+    });
+</script>
 {% endblock content %}

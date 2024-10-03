@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
 from backend.db_depends import get_db
 from models import Product, Cart
@@ -10,6 +11,8 @@ from routers import order, user, sprav, cart
 from config import templates
 
 app = FastAPI()
+
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key_1234567890")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -19,11 +22,17 @@ async def home(request: Request, cart_cookie: str = Cookie(None), db: Session = 
     query = select(Product).where(Product.is_available == True)
     result = db.execute(query)  # Выполняем запрос
     products = result.scalars().all()  # Получаем все доступные продукты
-    cart_instance = Cart.from_json(cart_cookie) if cart_cookie else Cart()
-    print(cart_instance.items)
-    cart_items_count = cart_instance.get_items_count()
 
-    return templates.TemplateResponse('home.html', {"request": request, "products": products, "cart_items_count": cart_items_count})
+    cart = request.session.get ( "cart" , {} )
+    cart_items_count = sum(cart.values())
+    context = {
+        "request": request,
+        "products": products,
+        "cart": cart,  # Передаем cart в контекст
+        "cart_items_count": cart_items_count
+    }
+
+    return templates.TemplateResponse('home.html', context)
 
 
 @app.get("/news", response_class=HTMLResponse)
@@ -44,4 +53,4 @@ app.include_router(sprav.router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8001, log_level="debug")
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True, log_level="debug")

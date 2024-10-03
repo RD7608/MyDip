@@ -66,6 +66,7 @@
                 {{ message }}
             </div>
             {% endfor %}
+            {% set _ = request.session.pop('messages', None) %}
             {% endif %}
             {% block content %}{% endblock %}
         </div>

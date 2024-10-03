@@ -18,12 +18,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request, cart_cookie: str = Cookie(None), db: Session = Depends(get_db)):
+async def home(request: Request, db: Session = Depends(get_db)):
     query = select(Product).where(Product.is_available == True)
     result = db.execute(query)  # Выполняем запрос
     products = result.scalars().all()  # Получаем все доступные продукты
-
-    cart = request.session.get ( "cart" , {} )
+    cart = request.session.get("cart", {})
     cart_items_count = sum(cart.values())
     context = {
         "request": request,

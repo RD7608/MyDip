@@ -39,12 +39,7 @@
                 <!-- Правая часть навигационной панели -->
                 <div class="navbar-nav">
                     <a class="nav-item nav-link" href="/cart">
-                        Корзина
-                        {% if cart_items_count > 0 %}
-                        (<span id="cart-count">{{ cart_items_count }}</span>)
-                        {% else %}
-                        (0)
-                        {% endif %}
+                        Корзина(<span id="cart-count">{{ cart_items_count }}</span>)
                     </a>
                     <a class="nav-item nav-link" href="">Заказы</a>
                     <a class="nav-item nav-link" href="">Профиль</a>

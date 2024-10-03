@@ -1,35 +1,29 @@
 {% extends "main.html" %}
+
 {% block content %}
 
 <div class="products">
     <div class="row">
         {% if products %}
-        {% for product in products %}
-        <div class="product col-4">
-            <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
-            <h4>{{ product.name }}</h4>
-            <p>Цена: {{ product.price }} р.</p>
+            {% for product in products %}
+            <div class="product col-4">
+                <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
+                <h4>{{ product.name }}</h4>
+                <p>Цена: {{ product.price }} р.</p>
 
-            <div class="cart-count">
-                <form action="/cart/update/{{ product.id }}" method="post" style="display: inline;">
-                     {% set quantity = cart.get(product.id|string, 0) %}
-
-                     {% if quantity == 0 %}
-                         <button type="submit" name="action" value="add" class="add-to-cart">В корзину</button>
-                     {% else %}
-                         <!-- Кнопка для уменьшения количества -->
-                         <button type="submit" name="action" value="decrement">-</button>
-                         <!-- Отображение текущего количества -->
-                         <span class="product-quantity">{{ quantity }}</span>
-                         <!-- Кнопка для увеличения количества -->
-                         <button type="submit" name="action" value="increment">+</button>
-                     {% endif %}
-                </form>
+                <div class="cart-count">
+                    {% set quantity = cart.get(product.id|string, 0) %}
+                    <form action="/cart/update/{{ product.id }}" method="post"style="display: inline;">
+                            <button type="submit" name="action" value="decrement" class="decrement">-</button>
+                            <span style="display: inline-block; width: 50px; text-align: center;" class="product-quantity">{{ quantity }}</span>
+                            <button type="submit" name="action" value="increment" class="increment">+</button>
+                            <button type="submit" name="action" value="add" class="add-to-cart">В корзину</button>
+                    </form>
+                </div>
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
         {% else %}
-        <li>Заполните справочник товаров</li>
+            <li>Заполните справочник товаров</li>
         {% endif %}
     </div>
 </div>
@@ -39,51 +33,69 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const updateButtonsDisplay = (cartItem, quantity) => {
+            const addToCartButton = cartItem.querySelector('.add-to-cart');
+            const incrementButton = cartItem.querySelector('.increment');
+            const decrementButton = cartItem.querySelector('.decrement');
+            const quantitySpan = cartItem.querySelector('.product-quantity');
+
+            if (quantity <= 0) {
+                addToCartButton.style.display = 'inline';
+                incrementButton.style.display = 'none';
+                decrementButton.style.display = 'none';
+                quantitySpan.style.display = 'none';
+            } else {
+                addToCartButton.style.display = 'none';
+                incrementButton.style.display = 'inline';
+                decrementButton.style.display = 'inline';
+                quantitySpan.style.display = 'inline-block';
+                quantitySpan.textContent = quantity; // Устанавливаем текущее количество
+            }
+        };
+
+        // Инициализация отображения кнопок при загрузке страницы
+        document.querySelectorAll('.product').forEach(cartItem => {
+            const quantity = parseInt(cartItem.querySelector('.product-quantity').textContent, 10);
+            updateButtonsDisplay(cartItem, quantity); // Обновляем вид кнопок на основе текущего количества
+        });
+
         document.querySelectorAll('.cart-count button').forEach(button => {
             button.addEventListener('click', function(event) {
-                event.preventDefault(); // Предотвращаем стандартное поведение кнопки
+                event.preventDefault();
 
                 const cartItem = button.closest('.product');
-                const productId = cartItem.querySelector('form').getAttribute('action').split('/')[3]; // Получаем ID продукта
-                const action = button.getAttribute('value'); // Получаем действие (increment или decrement)
+                const productId = cartItem.querySelector('form').getAttribute('action').split('/')[3];
+                const action = button.getAttribute('value');
 
-                // AJAX запрос для обновления корзины
                 fetch(`/cart/update/${productId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: new URLSearchParams({
-                        action: action
-                    })
-                }).then(response => {
+                    body: new URLSearchParams({ action: action })
+                })
+                .then(response => {
                     if (response.ok) {
-                        return response.json(); // Обрабатываем JSON-ответ
+                        return response.json();
                     } else {
-                        throw new Error('Ошибка обновления корзины'); // Обработка ошибки
+                        throw new Error('Ошибка обновления корзины');
                     }
-                }).then(data => {
-                    // Обновляем текущее количество товара
+                })
+                .then(data => {
                     const quantitySpan = cartItem.querySelector('.product-quantity');
-                    quantitySpan.textContent = data.quantity;
+                    const newQuantity = data.quantity;
+                    quantitySpan.textContent = newQuantity; // Обновляем количество товара
 
-                    // Условие для отображения кнопки "В корзину" и скрытия/показа кнопок +/-
-                    if (data.quantity == 0) {
-                        cartItem.querySelector('.add-to-cart').style.display = 'inline';
-                        quantitySpan.textContent = '0'; // Показать "0"
-                        // Скрыть кнопки +/- если количество 0
-                        cartItem.querySelectorAll('button[value="increment"], button[value="decrement"]').forEach(btn => {
-                            btn.style.display = 'none';
-                        });
-                    } else {
-                        cartItem.querySelector('.add-to-cart').style.display = 'none';
-                        // Показать кнопки +/- если количество больше 0
-                        cartItem.querySelectorAll('button[value="increment"], button[value="decrement"]').forEach(btn => {
-                            btn.style.display = 'inline';
-                        });
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement) {
+                        cartCountElement.textContent = data.cart_items_count;
                     }
-                }).catch(error => {
-                    console.error('Ошибка:', error);
+
+                    updateButtonsDisplay(cartItem, newQuantity); // Обновляем отображение кнопок
+                })
+                .catch(error => {
+                     console.error('Ошибка при обновлении корзины:', error);
+                     alert('Произошла ошибка при обновлении корзины. Попробуйте еще раз.');
                 });
             });
         });

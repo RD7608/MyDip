@@ -5,6 +5,7 @@
 <ul>
     {% if cart_items %}
         {% for item in cart_items %}
+        <br>
         <li>
             <p>{{ item.product.name }} - {{ item.product.price }} руб.| На сумму: {{ item.total_price }} руб.</p>
             <form method="post" action="{{ url_for('update_cart') }}">

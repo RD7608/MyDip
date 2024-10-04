@@ -10,20 +10,17 @@ products = Product.objects.all()
 
 
 def home(request):
-    cart = request.session.get('cart', {})  # Получаем корзину
-    cart_items_count = request.session.get('cart_items_count', 0)  # Количество товаров в корзине
-    product_items = []
+    cart = request.session.get ( 'cart' , {} )
+    cart_items_count = request.session.get ( 'cart_items_count' , 0 )
 
-    # Проходим по всем продуктам и собираем информацию о них
-    for product in products:
-        product_id = str(product.id)  # Приводим ID товара к строке
-        product_quantity = cart.get(product_id, 0)  # Получаем количество товаров, если его нет, возвращаем 0
-
-        # Добавляем в список детали продукта
-        product_items.append({
-            'product': product,
-            'quantity': product_quantity,
-        })
+    # Оптимизируем запрос, чтобы сразу получить нужные поля
+    product_items = [
+        {
+            'product': product ,
+            'quantity': cart.get ( str ( product.id ) , 0 ) ,
+        }
+        for product in Product.objects.all ()
+    ]
 
     context = {
         'product_items': product_items,
@@ -47,7 +44,8 @@ def catalog(request):
 @login_required
 def order_list(request):
     cart_items_count = request.session.get('cart_items_count', 0)  # Количество товаров в корзине
-    orders = Order.objects.filter(user=request.user)
+    orders = Order.objects.filter(user=request.user).select_related('city')
+
     context = {
         'title': 'Заказы',
         'orders': orders,
@@ -78,13 +76,7 @@ def order_create(request):
         # Добавляем к общей сумме
         total_price += product_total_price
 
-    # Получение пользователя "anonymous"
-    anon_user = User.objects.get(username='anonymous')
-
-    if request.user.is_authenticated:
-        user = request.user
-    else:
-        user = anon_user  # Используется пользователь "anonymous"
+    user = request.user if request.user.is_authenticated else User.objects.get ( username='anonymous' )
 
     if request.method == 'POST':
         form = OrderForm(request.POST, user=user)

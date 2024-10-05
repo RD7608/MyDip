@@ -1,9 +1,10 @@
-{% extends "delivery/main.html" %}
+{% extends "main.html" %}
 {% block content %}
 
 <div class="container">
-    <h1>Успех!</h1>
-    <p>{{ message }}</p>
+
+    <h4>{{ message }}</h4>
+
 
     <div class="order-details">
         <h2>Детали заказа</h2>
@@ -20,6 +21,8 @@
                         </strong></p>
     </div>
 
+    <h3> Спасибо за заказ!</h3>
+    <br><br><br>
     <a href="{% url 'delivery-home' %}" class="button">Перейти на главную</a>
 </div>
 {% endblock content %}

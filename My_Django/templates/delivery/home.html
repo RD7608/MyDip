@@ -1,11 +1,11 @@
-﻿{% extends "delivery/main.html" %}
+﻿{% extends "main.html" %}
 {% block content %}
 
 <div class="products">
     <div class="row">
         {% if product_items %}
             {% for item in product_items %}
-            <div class="product col-4">
+            <div class="product col-10">
                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
                 <h4>{{ item.product.name }}</h4>
                 <p>Цена: {{ item.product.price }} р.</p>

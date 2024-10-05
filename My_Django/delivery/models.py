@@ -20,6 +20,8 @@ class Product(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to='product_images/')
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    is_active = models.BooleanField(default=True)  # активен
+    is_available = models.BooleanField(default=False)  # доступен для покупки
 
     def __str__(self):
         return self.name
@@ -44,6 +46,13 @@ class Order(models.Model):
     is_canceled = models.BooleanField(default=False)  # отменён
 
     order_number = models.CharField(max_length=20, unique=True, editable=False)  # номер заказа
+
+    # Новые поля 05.10.2024
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='managed_orders')  # менеджер
+    courier = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='delivered_orders')  # курьер
+
 
     def __str__(self):
         return f'Заказ #{self.order_number}'

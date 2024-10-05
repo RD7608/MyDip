@@ -1,4 +1,23 @@
-﻿{% extends "delivery/main.html" %}
+﻿{% extends "main.html" %}
 {% block content %}
-
+<h1>Каталог товаров</h1>
+<div class="product-grid">
+    <ul>
+    {% for product in products %}
+        <li class="product-item">
+            <span class="product-info">{{ product.name }} - {{ product.price }} руб.</span>
+            <a href="/product/{{ product.id }}">Подробнее...</a>
+            {% if product.is_available %}
+            <form action="{% url 'update_cart' product.id %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.url }}">
+                <button type="submit" name="action" value="add" class="add-to-cart">Добавить в корзину</button>
+            </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+<br>
+<h4><a href="/">На главную</a></h4>
 {% endblock content %}

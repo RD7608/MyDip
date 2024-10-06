@@ -1,4 +1,5 @@
 /* styles.css */
+version: 1.2
 body,
 html {
  width:100%;
@@ -131,13 +132,6 @@ footer a:hover {
     justify-content: space-between;
 }
 
-.product {
-    width: 30%;  /* Около 1/3 ширины родительского контейнера */
-    margin-bottom: 20px;  /* Отступ между рядами */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);  /* Легкая тень для товара */
-    padding: 10px;
-    text-align: center;
-}
 
 img {
     max-width: 100%;  /* Чтобы изображение не выходило за пределы блока */

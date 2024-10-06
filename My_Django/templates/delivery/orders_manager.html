@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container">
-    <h1>Заказы менеджера {{ user.username }}</h1>
+    <h1>Заказы менеджера</h1>
 
     {% if user.is_authenticated %}
     <form method="GET" class="filter-form" style="display: inline;">
@@ -44,6 +44,17 @@
         tbody tr:hover {
             background-color: #f1f1f1; /* Цвет при наведении на строку */
         }
+        /* Устанавливаем ширину для столбцов */
+        th:nth-child(1), td:nth-child(1) { /* Номер заказа */
+            width: auto; /* Фиксированная ширина для колонки с номером заказа */
+            min-width: 20px;
+        }
+        th:nth-child(2), td:nth-child(2) { /* Дата доставки */
+            width: 100px;
+        }
+        .canceled {
+            background-color: #ffcccc; /* Цвет фона для отмененных заказов */
+        }
     </style>
 
     <table>
@@ -61,7 +72,7 @@
         <tbody>
         {% for order in orders %}
         <tr>
-            <td>{{ order.order_number }}</td>
+            <td class="{% if order.is_canceled %}canceled{% endif %}">{{ order.order_number }}</td>
             <td>{{ order.city.abbreviation}}</td>
             <td>{{ order.total_price }}</td>
             <td>{{ order.delivery_date|date:"d-m-Y" }}</td>
@@ -82,7 +93,9 @@
             <td>
                 <form method="POST" action="{% url 'order_cancel' order.id %}">
                     {% csrf_token %}
-                    <button type="submit">❌</button>
+                    {% if not order.is_canceled %}
+                        <button type="submit">❌</button>
+                    {% endif %}
                 </form>
             </td>
         </tr>

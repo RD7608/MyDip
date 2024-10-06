@@ -13,6 +13,7 @@
                     <div class="cart-count">
                         <form action="{% url 'update_cart' item.product.id %}" method="post" style="display: inline;">
                             {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
                             {% if item.quantity > 0 %}
                                 <button type="submit" name="action" value="decrement">-</button>
                                 <span style="display: inline-block; width: 50px; text-align: center;">{{ item.quantity }}</span>
@@ -29,11 +30,12 @@
         {% endif %}
     </div>
 </div>
-
+<br><br>
+    <div>
         {% if cart_items_count > 0 %}
             <button><a class="nav-item nav-link" href="{% url 'cart_view' %}">Перейти в корзину</a></button>
             <button><a class="nav-item nav-link" href="{% url 'order_create' %}">Оформить заказ</a></button>
         {% endif %}
-
+    </div>
 
 {% endblock content %}

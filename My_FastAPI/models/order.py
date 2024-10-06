@@ -19,6 +19,7 @@ class Order(Base):
     is_new = Column(Boolean, default=True)
     is_confirmed = Column(Boolean, default=False)
     is_delivered = Column(Boolean, default=False)
+    is_delivered_time = Column(DateTime, default=None)
     is_canceled = Column(Boolean, default=False)
 
     city_id = Column(Integer, ForeignKey('cities.id'), nullable=False)

@@ -1,6 +1,5 @@
 import json
 from fastapi import HTTPException
-from pydantic import BaseModel
 
 
 class Cart:

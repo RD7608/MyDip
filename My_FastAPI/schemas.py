@@ -2,12 +2,12 @@ from pydantic import BaseModel
 from models import Product
 
 
-class CreateCity ( BaseModel ):
+class CreateCity(BaseModel):
     name: str
     abbreviation: str
 
 
-class CreateProduct ( BaseModel ):
+class CreateProduct(BaseModel):
     name: str
     description: str
     image: str
@@ -16,27 +16,29 @@ class CreateProduct ( BaseModel ):
     is_available: bool = False
 
 
-class UpdateProduct ( BaseModel ):
+class UpdateProduct(BaseModel):
     price: float
     is_active: bool
     is_available: bool
 
 
-class CreateUser ( BaseModel ):
+class CreateUser(BaseModel):
     username: str
     email: str
-    password: str = None
+    password: str
     is_active: bool = True
-    is_admin: bool = False
-    firstname: str
-    lastname: str
-    customer_name: str
-    city: int
-    address: str
-    phone: str
+    firstname: str = None
+    lastname: str = None
+    customer_name: str = None
+    city: int = None
+    address: str = None
+    phone: str = None
+
+    class Config:
+        from_attributes = True
 
 
-class UpdateUser ( BaseModel ):
+class UpdateUser(BaseModel):
     email: str
     password: str = None
     firstname: str
@@ -47,7 +49,7 @@ class UpdateUser ( BaseModel ):
     phone: str
 
 
-class CreateOrder ( BaseModel ):
+class CreateOrder(BaseModel):
     customer_name: str
     customer_email: str
     customer_phone: str
@@ -61,7 +63,7 @@ class CreateOrder ( BaseModel ):
     is_canceled: bool = False
 
 
-class UpdateOrder ( BaseModel ):
+class UpdateOrder(BaseModel):
     customer_name: str
     delivery_date: str
     items: list

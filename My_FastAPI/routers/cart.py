@@ -94,10 +94,7 @@ async def update_cart(request: Request, product_id: int = Form(...), quantity: i
 
 
 @router.post("/update/{product_id}")
-async def update_item(
-        request: Request,
-        product_id: int,
-        action: str = Form(...)):
+async def update_item(request: Request, product_id: int, action: str = Form(...)):
     cart = request.session.get('cart', {})
     product_id_str = str(product_id)
     current_quantity = cart.get(product_id_str, 0)

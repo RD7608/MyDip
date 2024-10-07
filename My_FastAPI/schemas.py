@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from models import Product
+from pydantic import BaseModel, EmailStr
+from datetime import date
 
 
 class CreateCity(BaseModel):
@@ -24,7 +24,7 @@ class UpdateProduct(BaseModel):
 
 class CreateUser(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
     is_active: bool = True
     firstname: str = None
@@ -33,9 +33,6 @@ class CreateUser(BaseModel):
     city: int = None
     address: str = None
     phone: str = None
-
-    class Config:
-        from_attributes = True
 
 
 class UpdateUser(BaseModel):
@@ -51,19 +48,13 @@ class UpdateUser(BaseModel):
 
 class CreateOrder(BaseModel):
     customer_name: str
-    customer_email: str
+    customer_email: EmailStr
     customer_phone: str
     city: int
     address: str
-    delivery_date: str = None
-    items: list = []
-    is_new: bool = True
-    is_confirmed: bool = False
-    is_delivered: bool = False
-    is_canceled: bool = False
+    delivery_date: date
 
 
 class UpdateOrder(BaseModel):
     customer_name: str
     delivery_date: str
-    items: list

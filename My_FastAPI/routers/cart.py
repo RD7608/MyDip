@@ -7,7 +7,7 @@ from fastapi import Cookie
 
 from backend.db_depends import get_db
 from models import Cart, Product
-from config import templates
+from other import templates, get_current_user
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 
@@ -39,13 +39,14 @@ async def get_cart(request: Request, db: Session = Depends(get_db)):
     cart = request.session.get('cart', {})
     cart_items, total_price = get_cart_items(cart, db)
     cart_items_count = request.session.get('cart_items_count', 0)
-
+    user = get_current_user(request, db)
     context = {
         "request": request,
         'cart_items': cart_items,
         'total_price': total_price,
         'cart_items_count': cart_items_count,
-        "title": "Корзина"
+        "title": "Корзина",
+        'user': user
     }
 
     return templates.TemplateResponse("cart.html", context)

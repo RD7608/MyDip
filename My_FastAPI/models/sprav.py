@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DECIMAL
 from sqlalchemy.orm import relationship
 from backend.db import Base
 
@@ -20,7 +20,7 @@ class Product(Base):
     name = Column(String, index=True)
     description = Column(String)
     image = Column(String)
-    price = Column(Integer, default=0)
+    price = Column(DECIMAL(10, 2), default=0.00)
     is_active = Column(Boolean, default=True)
     is_available = Column(Boolean, default=False)
 

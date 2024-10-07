@@ -11,23 +11,20 @@ from passlib.context import CryptContext
 from backend.db_depends import get_db
 from models import User, Profile, Order
 from schemas import CreateUser, UpdateUser
-from config import templates
+from other import get_current_user, templates
 
 router = APIRouter(prefix="/user", tags=["user"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def get_current_user(request: Request, db: Annotated[Session, Depends(get_db)]):
-    user_id = request.session.get('user_id')
-    if user_id is not None:
-        return db.query(User).filter(User.id == user_id).first()
-    return db.query(User).filter(User.username == 'anonymous').first()
-
-
 @router.get("/register", response_class=HTMLResponse)
-async def register_form(request: Request):
-    return templates.TemplateResponse("/users/register.html", {"request": request})
+async def register_form(request: Request, db: Annotated[Session, Depends(get_db)]):
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("/users/register.html",
+                                      {"request": request,
+                                       "cart_items_count": request.session.get("cart_items_count", 0),
+                                       "user": user})
 
 
 @router.post("/register", response_class=HTMLResponse)
@@ -39,9 +36,13 @@ async def register_user(request: Request,
                         ):
     # проверяем есть ли такой пользователь
     existing_user = db.query(User).filter(User.email == email).first()
+    user = get_current_user(request, db)
     if existing_user:
         return templates.TemplateResponse("/users/register.html",
-                                          {"request": request, "error": "Пользователь с таким email уже существует."})
+                                          {"request": request,
+                                           "error": "Пользователь с таким email уже существует.",
+                                           "cart_items_count": request.session.get("cart_items_count", 0),
+                                           "user": user})
 
     # хешируем пароль
     hashed_password = pwd_context.hash(password)
@@ -61,10 +62,12 @@ async def register_user(request: Request,
         )
         db.add(new_profile)
         db.commit()
-
+        user = get_current_user(request, db)
         return templates.TemplateResponse("/users/login.html",
                                           {"request": request,
-                                           "message": f'Регистрация успешна.Ваш логин сайта - {new_user.email}'})
+                                           "message": f'Регистрация успешна.Ваш логин сайта - {new_user.email}',
+                                           "cart_items_count": request.session.get("cart_items_count", 0),
+                                           'user': user})
 
     except exc.SQLAlchemyError as e:
         db.rollback()
@@ -73,32 +76,46 @@ async def register_user(request: Request,
 
 
 @router.get("/login", response_class=HTMLResponse)
-async def get_login(request: Request):
-    return templates.TemplateResponse("/users/login.html", {"request": request})
+async def get_login(request: Request, db: Annotated[Session, Depends(get_db)]):
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("/users/login.html",
+                                      {"request": request,
+                                       "cart_items_count": request.session.get("cart_items_count", 0),
+                                       'user': user})
 
 
 @router.post("/login", response_model=dict)
-async def post_login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+async def post_login(request: Request, username: str = Form(...), password: str = Form(...),
+                     db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == username).first()
 
     if user is None or not pwd_context.verify(password, user.password):  # проверяем пароль
         raise HTTPException(status_code=400, detail="Неправильный логин или пароль")
 
     request.session['user_id'] = user.id
-    return templates.TemplateResponse("/users/profile.html", {"request": request, "user": user})
+    return templates.TemplateResponse("/users/profile.html",
+                                      {"request": request,
+                                       "cart_items_count": request.session.get("cart_items_count", 0),
+                                       "user": user})
 
 
 @router.get("/logout", response_class=HTMLResponse)
-async def logout(request: Request):
+async def logout(request: Request, db: Annotated[Session, Depends(get_db)]):
     request.session.pop('user_id', None)
-    return templates.TemplateResponse("/users/logout.html", {"request": request})
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("/users/logout.html",
+                                      {"request": request,
+                                       "cart_items_count": request.session.get("cart_items_count", 0),
+                                       "user": user})
 
 
 @router.get("/profile")
-async def get_profile(current_user: User = Depends(get_current_user)):
-    if current_user is None:
-        return {"message": "Пользователь не аутентифицирован"}
-    return {"user": current_user.username}
+async def get_profile(request: Request, db: Annotated[Session, Depends(get_db)],):
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("/users/profile.html",
+                                      {"request": request,
+                                       "cart_items_count": request.session.get("cart_items_count", 0),
+                                       "user": user})
 
 
 @router.put("/update")
@@ -153,4 +170,3 @@ async def delete_all_users(db: Annotated[Session, Depends(get_db)]):
         db.rollback()
         raise HTTPException(status_code=500,
                             detail=f"Ошибка при удалении пользователей: {str(e)}")
-

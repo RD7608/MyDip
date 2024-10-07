@@ -1,43 +1,113 @@
-﻿{% extends "delivery/main.html" %}
-{% block content %}
-    <div class="container">
-        <h1>Список заказов {{ user.username }}</h1>
+{% extends "main.html" %}
 
-        {% if user.is_authenticated %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Номер заказа</th>
-                        <th>Город</th>
-                        <th>Сумма</th>
-                        <th>Дата доставки</th>
-                        <th>Дата заказа</th>
-                        <th>Статусы</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                         <tr>
-                            <td>{{ order.order_number }}</td>
-                            <td>{{ order.city.name }}</td>
-                            <td>{{ order.total_price }}</td>
-                            <td>{{ order.delivery_date}}</td>
-                            <td>{{ order.created_date|date:"d-m-Y H:i" }}</td>
-                            <td>{% if order.is_new %}Новый{% endif %}
-                                {% if order.is_confirmed %}Подтвержден{% endif %}
-                                {% if order.is_delivered %}Доставлен{% endif %}
-                                {% if order.is_canceled %}Отменен{% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6">Здесь нет заказов.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>Чтобы просмотреть свои заказы, вам необходимо <a href="{% url 'registration' %}">зарегистрироваться</a>.</p>
-        {% endif %}
-    </div>
- {% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Заказы {{ user.username }}</h1>
+    {% if user.is_authenticated() %}
+
+    <style>
+        table {
+            width: 100%; /* Занимает всю ширину контейнера */
+            border-collapse: collapse; /* Убирает отступы между границами ячеек */
+        }
+        th, td {
+            border: 1px solid #ddd; /* Добавление рамки */
+            padding: 8px; /* Внутренний отступ */
+            text-align: left; /* Выравнивание текста по левому краю */
+            white-space: nowrap; /* Запрет на перенос текста в ячейках */
+        }
+        th {
+            background-color: #f2f2f2; /* Цвет фона для заголовков */
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1; /* Цвет при наведении на строку */
+        }
+
+        /* Устанавливаем фиксированную ширину для столбцов */
+        th:nth-child(1), td:nth-child(1) { /* Номер заказа */
+            width: 150px; /* Фиксированная ширина для колонки с номером заказа */
+        }
+        th:nth-child(5), td:nth-child(5) { /* Дата доставки */
+            width: 100px;
+        }
+        .canceled {
+            background-color: #ffcccc; /* Цвет фона для отмененных заказов */
+        }
+    </style>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Номер заказа</th>
+            <th>Город</th>
+            <th>Сумма</th>
+            <th>Дата создания</th>
+            <th>Дата доставки</th>
+            <th>Время доставки</th>
+            <th>Статус</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+        <tr>
+            <td class="{% if order.is_canceled %}canceled{% endif %}">{{ order.number }}</td>
+            <td>{{ order.city.name }}</td>
+            <td>{{ order.total_price }}</td>
+            <td>{{ order.created_at }}</td>
+            <td>{{ order.delivery_date }}</td>
+            <td>{% if order.is_delivered %}{{ order.is_delivered_time }}{% endif %}</td>
+            <td>{% if order.is_new %}Новый{% endif %}
+                {% if order.is_confirmed %}Подтвержден{% endif %}
+            </td>
+
+        </tr>
+
+        <tr>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function toggleColumns() {
+            var width = window.innerWidth;
+            var rows = document.querySelectorAll("tbody tr");
+            var headers = document.querySelectorAll("thead th");
+
+            if (width < 768) { // Если ширина окна меньше 768px
+                headers[1].style.display = 'none'; // Скрыть Город
+                headers[2].style.display = 'none'; // Скрыть Сумма
+                headers[3].style.display = 'none'; // Скрыть Дата создания
+                headers[5].style.display = 'none'; // Скрыть Статус
+
+                rows.forEach(function(row) {
+                    row.cells[1].style.display = 'none'; // Скрыть Город
+                    row.cells[2].style.display = 'none'; // Скрыть Сумма
+                    row.cells[3].style.display = 'none'; // Скрыть Дата создания
+                    row.cells[5].style.display = 'none'; // Скрыть Статус
+                });
+            } else {
+                headers[1].style.display = ''; // Показать Город
+                headers[2].style.display = ''; // Показать Сумма
+                headers[3].style.display = ''; // Показать Дата создания
+                headers[5].style.display = ''; // Показать Статус
+
+                rows.forEach(function(row) {
+                    row.cells[1].style.display = ''; // Показать Город
+                    row.cells[2].style.display = ''; // Показать Сумма
+                    row.cells[3].style.display = ''; // Показать Дата создания
+                    row.cells[5].style.display = ''; // Показать Статус
+                });
+            }
+        }
+
+        window.addEventListener("resize", toggleColumns);
+        window.addEventListener("load", toggleColumns);
+    </script>
+
+    {% else %}
+    <p>Чтобы обрабатывать заказы, вам необходимо <a href="/user/login">войти</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

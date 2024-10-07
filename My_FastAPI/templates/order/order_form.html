@@ -1,4 +1,4 @@
-﻿{% extends "delivery/main.html" %}
+{% extends "main.html" %}
 {% block content %}
 <h2>Оформление заказа</h2>
 <br>
@@ -8,11 +8,35 @@
     {% endfor%}
 <h4>Всего на  сумму: {{ total_price }} р.</h4>
 <hr width="100%" size="2" color="blue" noshade>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+<form method="post" action="/order/create">
+
+    <label for="customer_name">Имя получателя:</label>
+    <input type="text" id="customer_name" name="customer_name" class="form-control" required>
+
+    <label for="customer_email">Email заказчика:</label>
+    <input type="email" id="customer_email" name="customer_email" class="form-control" required>
+
+    <label for="city">Город доставки:</label>
+    <select id="city" name="city" class="form-control" required>
+        {% for city in cities %}
+            <option value="{{ city.id }}">{{ city.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="address">Адрес доставки:</label>
+    <input type="text" id="address" name="address" class="form-control" required>
+
+    <label for="delivery_date">Дата доставки:</label>
+    <input type="date" id="delivery_date" name="delivery_date" class="form-control" required>
+
+    <label for="customer_phone">Телефон:</label>
+    <input type="text" id="customer_phone" name="customer_phone" class="form-control" required>
+
+    <hr width="100%" size="2" color="blue" noshade>
+
+    <input type="hidden" id="total_price" name="total_price" value="{{ total_price }}">
+
     <button type="submit">Подтвердить заказ</button>
-    <br>
 </form>
 <hr width="100%" size="2" color="blue" noshade>
     {% for field in form %}
@@ -22,6 +46,9 @@
     {% endfor %}
 {% else %}
     <li>Корзина пуста</li>
-    <li><a href="{% url 'delivery-home' %}">Перейти на главную</a></li>
+    <br>
+    <li><a href="/spr/products/">Перейти в каталог товаров</a></li>
+    <br>
+<li><h5><a href="/">Перейти на главную</a></h5></li>
 {% endif %}
 {% endblock content %}

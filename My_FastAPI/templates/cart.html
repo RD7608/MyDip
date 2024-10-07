@@ -1,6 +1,6 @@
 {% extends "main.html" %}
-
 {% block content %}
+
 <h1>Корзина</h1>
 <ul>
     {% if cart_items %}
@@ -18,10 +18,8 @@
         {% endfor %}
         <br>
         <h3>Всего: {{ total_price }} руб.</h3>
-        <form method="post" action="{{ url_for('order_create') }}">
-            <button type="submit">Оформить заказ</button>
-        </form>
-        <br>
+            <button type="submit"><a href="/order/create/">Оформить заказ</a></button>
+        <br><br>
         <form method="post" action="{{ url_for('clear_cart') }}">
             <button type="submit">Очистить корзину</button>
         </form>

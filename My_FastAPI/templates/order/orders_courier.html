@@ -1,0 +1,91 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Заказы курьера</h1>
+
+    {% if user.is_authenticated %}
+    <form method="GET" class="filter-form" style="display: inline;">
+        <label for="date">Дата:</label>
+        <input type="date" name="date" value="{{ date_filter }}" />
+
+        <label for="courier">Заказы:</label>
+        <select name="courier">
+            <option value="my_orders" {% if courier_filter == 'my_orders' %}selected{% endif %}>Все заказы</option>
+            <option value="no_delivery" {% if courier_filter == 'no_delivery' %}selected{% endif %}>Не доставленные</option>
+        </select>
+
+        <button type="submit">Фильтровать</button>
+        <button type="submit" name="reset" value="true"> Сброс</button>
+    </form>
+
+    <style>
+        table {
+            width: 100%; /* Занимает всю ширину контейнера */
+            border-collapse: collapse; /* Убирает отступы между границами ячеек */
+        }
+        th, td {
+            border: 1px solid #ddd; /* Добавление рамки */
+            padding: 8px; /* Внутренний отступ */
+            text-align: left; /* Выравнивание текста по левому краю */
+        }
+        th {
+            background-color: #f2f2f2; /* Цвет фона для заголовков */
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1; /* Цвет при наведении на строку */
+        }
+
+        /* Устанавливаем ширину для столбцов */
+        th:nth-child(1), td:nth-child(1) {
+            min-width: 100px; /* для 1 колонки */
+        }
+        th:nth-child(2), td:nth-child(2) {
+            width: 250px; /* для 2 колонки */
+        }
+        th:nth-child(3), td:nth-child(3) {
+            width: 200px; /* для 3 колонки */
+        }
+
+    </style>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Отметить время</th>
+            <th>Адрес доставки</th>
+            <th>Доставлен</th>
+            <th>Время доставки</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.delivery_date|date:"d-m-Y" }}</td>
+            <td>
+                {% if not order.is_delivered %}
+                <form method="POST" action="{% url 'confirm_delivery' order.id %}">
+                    {% csrf_token %}
+                    <input type="time" name="delivered_time" value="{{ current_time }}" />
+                    <button type="submit" class="btn btn-success">Доставить</button>
+                </form>
+                {% endif %}
+            </td>
+            <td>{{ order.address }}</td>
+            <td>{{ order.is_delivered }}</td>
+            <td>{{ order.is_delivered_time }}</td>
+
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Здесь нет заказов.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Чтобы обрабатывать заказы, вам необходимо <a href="{% url 'registration' %}">зарегистрироваться</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

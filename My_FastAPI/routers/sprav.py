@@ -7,7 +7,8 @@ from typing import Annotated
 from backend.db_depends import get_db
 from models import Product, City, Order
 from schemas import CreateProduct, UpdateProduct, CreateCity
-from config import templates
+from other import templates, get_current_user
+
 
 
 router = APIRouter(prefix="/spr", tags=["spr"])
@@ -18,11 +19,14 @@ async def get_products(request: Request, db: Session = Depends(get_db)):
     messages = request.session.get ( 'messages' , [] )
     products = db.query(Product).all()
     cart_items_count = request.session.get ( 'cart_items_count' , 0 )
+    user = get_current_user(request, db)
     context = {
         "request": request,
+        "title": "Каталог",
         "messages": messages,
         "products": products,
-        "cart_items_count": cart_items_count
+        "cart_items_count": cart_items_count,
+        "user": user
     }
     return templates.TemplateResponse("sprav/catalog.html", context)
 
@@ -33,11 +37,14 @@ async def product_by_id(request: Request, product_id: int, db: Session = Depends
     # Получаем товар по id
     query = select(Product).where(Product.id == product_id)
     product = db.scalar(query)
+    user = get_current_user(request, db)
     if product:
         context = {
             "request": request,
+            "title": "Детали товара",
             "product": product,
-            "cart_items_count": cart_items_count
+            "cart_items_count": cart_items_count,
+            "user": user
         }
         return templates.TemplateResponse("sprav/product.html", context)
     else:

@@ -8,9 +8,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from backend.db_depends import get_db
 from models import Product, User
 from routers import order, user, sprav, cart
-from config import templates
+from other import templates
 from routers.user import get_current_user
-
 
 app = FastAPI()
 
@@ -21,7 +20,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-
     query = select(Product).where(Product.is_available == True)  # Получаем все доступные продукты
     result = db.execute(query)  # Выполняем запрос
     products = result.scalars().all()  # Получаем все продукты из запроса
@@ -30,21 +28,25 @@ async def home(request: Request, db: Session = Depends(get_db)):
     cart_items_count = sum(cart.values())
     current_user = get_current_user(request, db)
 
-
     context = {
         "request": request,
         "products": products,
         "cart": cart,  # Передаем cart в контекст
         "cart_items_count": cart_items_count,
-        "current_user": current_user
+        "user": current_user
     }
 
     return templates.TemplateResponse('home.html', context)
 
 
 @app.get("/about", response_class=HTMLResponse)
-async def about():
-    return templates.TemplateResponse('about.html', {"request": {}, "cart_items_count": 0})
+async def about(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    cart_items_count = request.session.get("cart_items_count", 0)
+
+    return templates.TemplateResponse('about.html', {"request": {},
+                                                     "cart_items_count": cart_items_count,
+                                                     "user": user})
 
 
 app.include_router(order.router)

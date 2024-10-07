@@ -61,7 +61,7 @@ class Order(models.Model):
         if self.is_new:
             current_date = timezone.now().strftime('%d%m%Y')
             city_abbreviation = self.city.abbreviation
-            order_sequence = self._get_next_order_sequence(city_abbreviation)
+            order_sequence = self._get_next_order_sequence()
 
             self.order_number = f"{city_abbreviation}-{current_date}-{order_sequence}"
 
@@ -84,7 +84,7 @@ class Order(models.Model):
         # Сохраняем изменения в базе данных
         self.save()
 
-    def _get_next_order_sequence(self, city_abbreviation):
+    def _get_next_order_sequence(self):
         # Получаем последний номер заказа для данного города
         last_order = Order.objects.filter(city=self.city).order_by('created_date').last()
         if last_order:

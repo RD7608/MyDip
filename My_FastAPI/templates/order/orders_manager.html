@@ -1,0 +1,113 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Заказы менеджера</h1>
+
+    {% if user.is_authenticated %}
+    <form method="GET" class="filter-form" style="display: inline;">
+        <label for="date">Дата:</label>
+        <input type="date" name="date" value="{{ date_filter }}" />
+
+        <label for="city">Город:</label>
+        <select name="city">
+            <option value="all" {% if city_filter == "all" %}selected{% endif %}>Все города</option>
+            {% for city in cities %}
+            <option value="{{ city.id }}" {% if city_filter|stringformat:"s" == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="manager">Заказы:</label>
+        <select name="manager">
+            <option value="my_orders" {% if manager_filter == 'my_orders' %}selected{% endif %}>Мои заказы</option>
+            <option value="no_manager" {% if manager_filter == 'no_manager' %}selected{% endif %}>Без менеджера</option>
+        </select>
+
+        <button type="submit">Фильтровать</button>
+        <button type="submit" name="reset" value="true">Сброс</button>
+    </form>
+
+    <style>
+        table {
+            width: 100%; /* Занимает всю ширину контейнера */
+            border-collapse: collapse; /* Убирает отступы между границами ячеек */
+        }
+        th, td {
+            border: 1px solid #ddd; /* Добавление рамки */
+            padding: 8px; /* Внутренний отступ */
+            text-align: left; /* Выравнивание текста по левому краю */
+            white-space: nowrap; /* Запрет на перенос текста в ячейках */
+        }
+        th {
+            background-color: #f2f2f2; /* Цвет фона для заголовков */
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1; /* Цвет при наведении на строку */
+        }
+        /* Устанавливаем ширину для столбцов */
+        th:nth-child(1), td:nth-child(1) { /* Номер заказа */
+            width: auto; /* Фиксированная ширина для колонки с номером заказа */
+            min-width: 20px;
+        }
+        th:nth-child(2), td:nth-child(2) { /* Дата доставки */
+            width: 100px;
+        }
+        .canceled {
+            background-color: #ffcccc; /* Цвет фона для отмененных заказов */
+        }
+    </style>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Номер заказа</th>
+            <th>Город</th>
+            <th>Сумма</th>
+            <th>Дата доставки</th>
+            <th>Менеджер</th>
+            <th>Курьер</th>
+            <th>Отменить</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+        <tr>
+            <td class="{% if order.is_canceled %}canceled{% endif %}">{{ order.order_number }}</td>
+            <td>{{ order.city.abbreviation}}</td>
+            <td>{{ order.total_price }}</td>
+            <td>{{ order.delivery_date|date:"d-m-Y" }}</td>
+            <td>{{ order.manager.username}}</td>
+            <td>
+                <form method="POST" action="{% url 'assign_courier' order.id %}">
+                    {% csrf_token %}
+                    <select name="courier_id">
+                        <option value="">Выберите курьера</option>
+                        {% for courier in couriers %}
+                        <option value="{{ courier.id }}" {% if order.courier == courier %}selected{% endif %}>{{ courier.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Назначить</button>
+                </form>
+            </td>
+            <td>
+                <form method="POST" action="{% url 'order_cancel' order.id %}">
+                    {% csrf_token %}
+                    {% if not order.is_canceled %}
+                        <button type="submit">❌</button>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Здесь нет заказов.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Чтобы обрабатывать заказы, вам необходимо <a href="{% url 'registration' %}">зарегистрироваться</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

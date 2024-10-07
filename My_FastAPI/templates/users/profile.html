@@ -1,21 +1,39 @@
 {% extends "main.html" %}
 {% block content %}
-    <div class="content-section">
-      <div class="media">
+<div class="content-section" xmlns="http://www.w3.org/1999/html">
+    <div class="media">
         <div class="media-body">
-          <h2 class="account-heading">{{ user.username }}</h2>
-          <p class="text-secondary">{{ user.email }}</p>
+            <h2 class="account-heading">{{ user.username }}</h2>
+            <p class="text-secondary">{{ user.email }}</p>
         </div>
-      </div>
-       <form method="POST" enctype="multipart/form-data">
-          <fieldset class="form-group">
-              <legend class="border-bottom mb-4">Ваш профиль</legend>
-              {{ u_form }}
-              {{ p_form }}
-          </fieldset>
-          <div class="form-group">
-              <button class="btn btn-outline-info" type="submit">Обновить</button>
-          </div>
-      </form>
     </div>
+    <form action="/user/update" method="post">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" value="{{ user.username }}" required><br>
+
+        <label for="firstname">Имя:</label><br>
+        <input type="text" id="firstname" name="firstname" value="{{ user.profile.firstname }}" required><br>
+
+        <label for="lastname">Фамилия:</label><br>
+        <input type="text" id="lastname" name="lastname" value="{{ user.profile.lastname }}" required><br>
+
+        <label for="customer_name">Получатель заказа:</label><br>
+        <input type="text" id="customer_name" name="customer_name" value="{{ user.profile.customer_name }}"
+               required><br>
+
+        <label for="city">Город доставки:</label>
+        <select id="city" name="city" class="form-control" required>
+            {% for city in cities %}
+            <option value="{{ city.id }}" {{'selected' if city.id == user.profile.city_id else '-----'}}>{{ city.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="address">Адрес:</label><br>
+        <input type="text" id="address" name="address" value="{{ user.profile.address }}" required><br>
+
+        <label for="phone">Телефон:</label><br>
+        <input type="text" id="phone" name="phone" value="{{ user.profile.phone }}" required><br>
+        <br>
+        <input type="submit" value="Обновить профиль">
+    </form>
+</div>
 {% endblock content %}

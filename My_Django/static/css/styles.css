@@ -1,5 +1,4 @@
 /* styles.css */
-version: 1.2
 body,
 html {
  width:100%;
@@ -132,8 +131,7 @@ footer a:hover {
     justify-content: space-between;
 }
 
-
-img {
-    max-width: 100%;  /* Чтобы изображение не выходило за пределы блока */
-    height: auto;
+.product-image {
+    width: 200px;
+    height: 200px;
 }

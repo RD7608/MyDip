@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import Form
 from sqlalchemy.orm import Session
 from sqlalchemy import insert, select, update, delete
@@ -11,7 +10,7 @@ from passlib.context import CryptContext
 from backend.db_depends import get_db
 from models import User, Profile, Order
 from schemas import CreateUser, UpdateUser
-from other import get_current_user, templates
+from other import get_current_user, templates, get_cities
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -109,28 +108,73 @@ async def logout(request: Request, db: Annotated[Session, Depends(get_db)]):
                                        "user": user})
 
 
-@router.get("/profile")
-async def get_profile(request: Request, db: Annotated[Session, Depends(get_db)],):
-    user = get_current_user(request, db)
+@router.get("/profile", response_class=HTMLResponse)
+async def get_profile(request: Request, db: Annotated[Session, Depends(get_db)], ):
+    messages = request.session.get('messages', [])
+    user = get_current_user(request, db)  # получаем текущего пользователя
+    cities = get_cities(db)  # получаем список городов
+
     return templates.TemplateResponse("/users/profile.html",
                                       {"request": request,
+                                       "cities": cities,
                                        "cart_items_count": request.session.get("cart_items_count", 0),
-                                       "user": user})
+                                       "user": user,
+                                       "messages": messages})
 
 
-@router.put("/update")
+@router.post("/update")
+async def update_form(request: Request,
+                      db: Annotated[Session, Depends(get_db)],
+                      username: str = Form(...),
+                      firstname: str = Form(...),
+                      lastname: str = Form(...),
+                      customer_name: str = Form(...),
+                      city: int = Form(...),
+                      address: str = Form(...),
+                      phone: str = Form(...)
+                      ):
+    user = get_current_user(request, db)
+    if not user.is_authenticated():
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    existing_user = db.scalar(select(User).where(User.id == user.id))
+    if existing_user:
+        db.execute(update(User).where(User.id == user.id).values(username=username))
+        db.commit()
+        db.execute(update(Profile).where(User.id == user.id).values(firstname=firstname,
+                                                                    lastname=lastname,
+                                                                    customer_name=customer_name,
+                                                                    city_id=city,
+                                                                    address=address,
+                                                                    phone=phone))
+        db.commit()
+
+        message = f"Профиль {user.email} был обновлен"
+        # Инициализируем список сообщений в сессии, если он еще не существует
+        if 'messages' not in request.session:
+            request.session['messages'] = []
+        request.session['messages'].append(message)  # Добавляем сообщение в список
+
+        return RedirectResponse(url="/user/profile", status_code=302)
+
+    else:
+        raise HTTPException(status_code=404, detail='Пользователь не найден')
+
+
+@router.put("/update/{user_id}")
+
+
 async def update_user(db: Annotated[Session, Depends(get_db)], user_id: int, user: UpdateUser):
     existing_user = db.scalar(select(User).where(User.id == user_id))
     if existing_user:
-        db.execute(update(User).where(User.id == user_id).values(email=user.email,
-                                                                 password=user.password))
+        db.execute(update(User).where(User.id == user_id).values(username=user.username))
         db.commit()
         db.execute(update(Profile).where(User.id == user_id).values(firstname=user.firstname,
                                                                     lastname=user.lastname,
                                                                     customer_name=user.customer_name,
-                                                                    phone=user.phone,
                                                                     city_id=user.city,
-                                                                    address=user.address))
+                                                                    address=user.address,
+                                                                    phone=user.phone))
 
         db.commit()
 

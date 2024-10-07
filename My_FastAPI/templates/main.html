@@ -19,6 +19,30 @@
     {% else %}
     <title>Доставка воды</title>
     {% endif %}
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Устанавливаем минимальную высоту на 100% высоты экрана */
+            margin: 0;
+        }
+        .content {
+            flex: 1; /* Позволяет контенту занимать оставшееся место */
+            padding-top: 60px; /* Отступ для основного содержимого (высота навигационной панели) */
+        }
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 10px 0; /* Отступы для footer */
+        }
+        .product-image {
+        width: 200px;
+        height: 200px;
+        }
+
+    </style>
+
 </head>
 <body>
 <header class="site-header">
@@ -60,7 +84,7 @@
     </nav>
 </header>
 
-<main role="main" class="container">
+<main role="main" class="content container">
     <div class="row">
         <div class="col-md-8">
             {% if messages %}

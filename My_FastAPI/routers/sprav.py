@@ -16,7 +16,7 @@ router = APIRouter(prefix="/spr", tags=["spr"])
 
 @router.get("/products", response_class=HTMLResponse)
 async def get_products(request: Request, db: Session = Depends(get_db)):
-    messages = request.session.get ( 'messages' , [] )
+    messages = request.session.get('messages', [])
     products = db.query(Product).all()
     cart_items_count = request.session.get ( 'cart_items_count' , 0 )
     user = get_current_user(request, db)

@@ -6,23 +6,27 @@ from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
 from backend.db_depends import get_db
-from models import Product, User
 from routers import order, user, sprav, cart
-from other import templates
-from routers.user import get_current_user
+from other import templates, get_current_user, get_products
 
-app = FastAPI()
 
-app.add_middleware(SessionMiddleware, secret_key="your_secret_key_1234567890")
+app = FastAPI()  # Создание экземпляра FastAPI
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key_1234567890")  # Секретный ключ для сессии
+
+app.mount("/static", StaticFiles(directory="static"), name="static") # Маршрутизация для статики
 
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    query = select(Product).where(Product.is_available == True)  # Получаем все доступные продукты
-    result = db.execute(query)  # Выполняем запрос
-    products = result.scalars().all()  # Получаем все продукты из запроса
+    """
+    Главная страница
+        Выводит доступные для заказа товары на страницу
+        можно добавлять/убавлять товары в корзине,
+        перейти в корзину или оформить заказ
+    """
+    # Получаем все доступные для заказа товары из базы данных
+    products = get_products(db)
 
     cart = request.session.get("cart", {})
     cart_items_count = sum(cart.values())
@@ -41,6 +45,10 @@ async def home(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/about", response_class=HTMLResponse)
 async def about(request: Request, db: Session = Depends(get_db)):
+    """
+     Выводит информацию о предприятии
+    """
+
     user = get_current_user(request, db)
     cart_items_count = request.session.get("cart_items_count", 0)
 

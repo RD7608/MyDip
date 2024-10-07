@@ -4,25 +4,25 @@
 <div class="products">
     <div class="row">
         {% if products %}
-            {% for product in products %}
-            <div class="product col-4">
-                <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
-                <h4>{{ product.name }}</h4>
-                <p>Цена: {{ product.price }} р.</p>
+        {% for product in products %}
+        <div class="product col-4">
+            <img src="{{ url_for('static', path=product.image) }}" alt="{{ product.name }}" class="product-image">
+            <h4>{{ product.name }}</h4>
+            <p>Цена: {{ product.price }} р.</p>
 
-                <div class="cart-count">
-                    {% set quantity = cart.get(product.id|string, 0) %}
-                    <form action="/cart/update/{{ product.id }}" method="post"style="display: inline;">
-                            <button type="submit" name="action" value="decrement" class="decrement">-</button>
-                            <span style="display: inline-block; width: 50px; text-align: center;" class="product-quantity">{{ quantity }}</span>
-                            <button type="submit" name="action" value="increment" class="increment">+</button>
-                            <button type="submit" name="action" value="add" class="add-to-cart">В корзину</button>
-                    </form>
-                </div>
+            <div class="cart-count">
+                {% set quantity = cart.get(product.id|string, 0) %}
+                <form action="/cart/update/{{ product.id }}" method="post" style="display: inline;">
+                    <button type="submit" name="action" value="decrement" class="decrement">-</button>
+                    <span style="display: inline-block; width: 50px; text-align: center;" class="product-quantity">{{ quantity }}</span>
+                    <button type="submit" name="action" value="increment" class="increment">+</button>
+                    <button type="submit" name="action" value="add" class="add-to-cart">В корзину</button>
+                </form>
             </div>
-            {% endfor %}
+        </div>
+        {% endfor %}
         {% else %}
-            <li>Заполните справочник товаров</li>
+        <li>Заполните справочник товаров</li>
         {% endif %}
     </div>
 </div>

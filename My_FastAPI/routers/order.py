@@ -8,8 +8,7 @@ from sqlalchemy import exc
 
 from backend.db_depends import get_db
 from models import User, Order, City
-from schemas import CreateOrder, UpdateOrder
-from other import templates, get_current_user, get_cities, get_products
+from other import templates, get_current_user, get_cities, get_products, get_cart_items, delivery_day
 
 router = APIRouter(prefix="/order", tags=["order"])
 
@@ -17,7 +16,6 @@ router = APIRouter(prefix="/order", tags=["order"])
 @router.get("/list")
 async def all_orders(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
-    print(user.id, user.username)
     orders = db.scalars(select(Order).where(Order.user_id == user.id))
     context = {
         'title': 'Заказы',
@@ -41,33 +39,18 @@ async def order_by_id(db: Annotated[Session, Depends(get_db)], order_id: int):
 @router.get("/create")
 async def order_form(request: Request, db: Annotated[Session, Depends(get_db)]):
     cart = request.session.get('cart', {})
-    cities = get_cities(db)
-    products = get_products(db)
-    cart_items = []  # Список для хранения деталей продуктов в корзине
-    total_price = 0  # Общая сумма
-    for product in products:
-        product_quantity = cart[str(product.id)]  # Получаем количество товаров
-        product_total_price = product.price * product_quantity  # Считаем сумму для этого продукта
-
-        # Добавляем в список детали продукта
-        cart_items.append({
-            'product': product,
-            'quantity': product_quantity,
-            'total_price': product_total_price
-        })
-
-        # Добавляем к общей сумме
-        total_price += product_total_price
+    cart_items, total_price = get_cart_items(cart, db)
 
     user = get_current_user(request, db)
 
     context = {
-        'cities': cities,
+        'title': 'Оформление заказа',
+        'cities': get_cities(db),
         'cart_items': cart_items,
         'total_price': total_price,
         'cart_items_count': request.session.get('cart_items_count', 0),
-        'title': 'Оформление заказа',
-        'user': user
+        'user': user,
+        'delivery_day': delivery_day()
     }
 
     return templates.TemplateResponse(request, 'order/order_form.html', context)

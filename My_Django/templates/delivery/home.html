@@ -4,38 +4,38 @@
 <div class="products">
     <div class="row">
         {% if product_items %}
-            {% for item in product_items %}
-            <div class="product col-10">
-                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-                <h4>{{ item.product.name }}</h4>
-                <p>Цена: {{ item.product.price }} р.</p>
+        {% for item in product_items %}
+        <div class="product col-4">
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-image">
+            <h4>{{ item.product.name }}</h4>
+            <p>Цена: {{ item.product.price }} р.</p>
 
-                    <div class="cart-count">
-                        <form action="{% url 'update_cart' item.product.id %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.path }}">
-                            {% if item.quantity > 0 %}
-                                <button type="submit" name="action" value="decrement">-</button>
-                                <span style="display: inline-block; width: 50px; text-align: center;">{{ item.quantity }}</span>
-                                <button type="submit" name="action" value="increment">+</button>
-                            {% else %}
-                                <button type="submit" name="action" value="add">В корзину</button>
-                            {% endif %}
-                        </form>
-                    </div>
+            <div class="cart-count">
+                <form action="{% url 'update_cart' item.product.id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    {% if item.quantity > 0 %}
+                    <button type="submit" name="action" value="decrement">-</button>
+                    <span style="display: inline-block; width: 50px; text-align: center;">{{ item.quantity }}</span>
+                    <button type="submit" name="action" value="increment">+</button>
+                    {% else %}
+                    <button type="submit" name="action" value="add">В корзину</button>
+                    {% endif %}
+                </form>
             </div>
-            {% endfor %}
+        </div>
+        {% endfor %}
         {% else %}
-            <li>Заполните справочник товаров</li>
+        <li>Заполните справочник товаров</li>
         {% endif %}
     </div>
 </div>
 <br><br>
-    <div>
-        {% if cart_items_count > 0 %}
-            <button><a class="nav-item nav-link" href="{% url 'cart_view' %}">Перейти в корзину</a></button>
-            <button><a class="nav-item nav-link" href="{% url 'order_create' %}">Оформить заказ</a></button>
-        {% endif %}
-    </div>
+<div>
+    {% if cart_items_count > 0 %}
+    <button><a class="nav-item nav-link" href="{% url 'cart_view' %}">Перейти в корзину</a></button>
+    <button><a class="nav-item nav-link" href="{% url 'order_create' %}">Оформить заказ</a></button>
+    {% endif %}
+</div>
 
 {% endblock content %}

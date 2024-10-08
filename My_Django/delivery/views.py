@@ -431,7 +431,7 @@ def confirm_delivery(request, order_id):
     date_filter = request.session.get('date_filter', str(timezone.localdate()))
     courier_filter = request.session.get('courier_filter', 'no_delivery')
 
-    # Перенаправляем обратно на страницу менеджера с фильтрами
+    # Перенаправляем обратно на страницу курьера с фильтрами
     return redirect(f"{reverse('delivery-courier')}?date={date_filter}&courier={courier_filter}")
 
 

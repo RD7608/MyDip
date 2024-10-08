@@ -70,6 +70,8 @@
                     <input type="time" name="delivered_time" value="{{ current_time }}" />
                     <button type="submit" class="btn btn-success">Доставить</button>
                 </form>
+                {% else %}
+                Доставлен в {{ order.is_delivered_time }}
                 {% endif %}
             </td>
             <td>{{ order.address }}</td>

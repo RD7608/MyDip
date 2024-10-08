@@ -1,4 +1,4 @@
-﻿{% extends "main.html" %}
+{% extends "main.html" %}
 {% block content %}
 
 <div class="products">
@@ -6,7 +6,7 @@
         {% if product_items %}
         {% for item in product_items %}
         <div class="product col-4">
-            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-image">
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-image img-fluid">
             <h4>{{ item.product.name }}</h4>
             <p>Цена: {{ item.product.price }} р.</p>
 
@@ -16,10 +16,10 @@
                     <input type="hidden" name="next" value="{{ request.path }}">
                     {% if item.quantity > 0 %}
                     <button type="submit" name="action" value="decrement">-</button>
-                    <span style="display: inline-block; width: 50px; text-align: center;">{{ item.quantity }}</span>
+                    <span style="display: inline-block; width: 20px; text-align: center;">{{ item.quantity }}</span>
                     <button type="submit" name="action" value="increment">+</button>
                     {% else %}
-                    <button type="submit" name="action" value="add">В корзину</button>
+                    <button type="submit" class="btn btn-primary" name="action" value="add">В корзину</button>
                     {% endif %}
                 </form>
             </div>

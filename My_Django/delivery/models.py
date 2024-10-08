@@ -71,15 +71,15 @@ class Order(models.Model):
         """Метод для обновления статуса заказа на основе текущих полей."""
         if self.is_canceled:
             self.is_new = False
-            self.is_confirmed = False
             self.is_delivered = False
+
         elif self.is_confirmed:
             self.is_new = False
             self.confirmation_date = timezone.now()
+
         elif self.is_delivered:
             self.is_new = False
             self.is_confirmed = True
-            self.is_delivered_time = timezone.now().time()
 
         # Сохраняем изменения в базе данных
         self.save()

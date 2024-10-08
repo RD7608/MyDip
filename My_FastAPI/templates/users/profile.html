@@ -3,36 +3,45 @@
 <div class="content-section" xmlns="http://www.w3.org/1999/html">
     <div class="media">
         <div class="media-body">
-            <h2 class="account-heading">{{ user.username }}</h2>
-            <p class="text-secondary">{{ user.email }}</p>
+            <h2 class="account-heading">{{ user_form.username }}</h2>
+            <p class="text-secondary">{{ user_form.email }}</p>
         </div>
     </div>
     <form action="/user/update" method="post">
         <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" value="{{ user.username }}" required><br>
-
+        <input type="text" id="username" name="username" value="{{ user_form.username }}" required><br>
+        <br>
         <label for="firstname">Имя:</label><br>
-        <input type="text" id="firstname" name="firstname" value="{{ user.profile.firstname }}" required><br>
-
+        <input type="text" id="firstname" name="firstname" value="{{ user_form.profile.firstname }}"><br>
+        <br>
         <label for="lastname">Фамилия:</label><br>
-        <input type="text" id="lastname" name="lastname" value="{{ user.profile.lastname }}" required><br>
-
+        <input type="text" id="lastname" name="lastname" value="{{ user_form.profile.lastname }}"><br>
+        <br>
         <label for="customer_name">Получатель заказа:</label><br>
-        <input type="text" id="customer_name" name="customer_name" value="{{ user.profile.customer_name }}"
-               required><br>
-
+        <input type="text" id="customer_name" name="customer_name" value="{{ user_form.profile.customer_name }}"><br>
+        <br>
         <label for="city">Город доставки:</label>
         <select id="city" name="city" class="form-control" required>
             {% for city in cities %}
-            <option value="{{ city.id }}" {{'selected' if city.id == user.profile.city_id else '-----'}}>{{ city.name }}</option>
+            <option value="{{ city.id }}" {{
+            'selected' if city.id == user_form.profile.city_id else '-----'}}>{{ city.name }}</option>
             {% endfor %}
         </select>
-        <label for="address">Адрес:</label><br>
-        <input type="text" id="address" name="address" value="{{ user.profile.address }}" required><br>
-
-        <label for="phone">Телефон:</label><br>
-        <input type="text" id="phone" name="phone" value="{{ user.profile.phone }}" required><br>
         <br>
+        <label for="address">Адрес:</label><br>
+        <input type="text" id="address" name="address" value="{{ user_form.profile.address }}"><br>
+        <br>
+        <label for="phone">Телефон:</label><br>
+        <input type="text" id="phone" name="phone" value="{{ user_form.profile.phone }}"><br>
+        <br>
+        {% if user.is_admin %}
+            <label for="is_manager">Менеджер:</label>
+            <input type="checkbox" id="is_manager" name="is_manager" value="true" {% if user_form.profile.is_manager %}checked{%endif%}>
+            <label for="is_courier">Курьер:</label>
+            <input type="checkbox" id="is_courier" name="is_courier" value="true" {% if user_form.profile.is_courier %}checked{%endif%}>
+        {% endif %}
+        <input type="hidden" id="user_id" name="user_id" value="{{ user_form.id }}">
+        <br><br>
         <input type="submit" value="Обновить профиль">
     </form>
 </div>

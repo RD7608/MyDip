@@ -29,22 +29,26 @@ class Order(Base):
     city_id = Column(Integer, ForeignKey('cities.id'), nullable=False)
     city = relationship('City', back_populates='orders')
 
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    user = relationship('User', back_populates='orders')
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    user = relationship('User', foreign_keys=[user_id], back_populates='orders')
+
+    # Поля для менеджера и курьера
+    manager_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    courier_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    manager = relationship('User', foreign_keys=[manager_id], back_populates='managed_orders')
+    courier = relationship('User', foreign_keys=[courier_id], back_populates='courier_orders')
+
 
     def update_status(self):
         """Метод для обновления статуса заказа на основе текущих полей."""
         if self.is_canceled:
             self.is_new = False
-            self.is_confirmed = False
             self.is_delivered = False
 
-        elif self.is_confirmed:
+        elif self.is_confirmed and not self.is_canceled:
             self.is_new = False
-            self.confirmed_at = datetime.now() # Время подтверждения
+            self.confirmed_at = datetime.now()  # Время подтверждения
 
-        elif self.is_delivered:
+        elif self.is_delivered and not self.is_canceled:
             self.is_new = False
             self.is_confirmed = True
-            self.is_delivered_time = datetime.now() # Время доставки
-

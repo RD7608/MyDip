@@ -1,13 +1,14 @@
 from datetime import timezone, datetime
 
 from fastapi import APIRouter, Depends, status, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import insert, select, update, delete
 from typing import Annotated
 from sqlalchemy import exc
 
 from backend.db_depends import get_db
-from models import User, Order, City
+from models import User, Order, City, Profile
 from other import templates, get_current_user, get_cities, get_products, get_cart_items, delivery_day
 
 router = APIRouter(prefix="/order", tags=["order"])
@@ -24,6 +25,149 @@ async def all_orders(request: Request, db: Session = Depends(get_db)):
         'user': user
     }
     return templates.TemplateResponse(request, "/order/orders.html", context)
+
+
+@router.get("/manager")
+async def manager_orders(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    if not user.profile.is_manager and not user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not a manager")
+
+    orders = db.scalars(select(Order).where(Order.user_id == user.id))
+
+    cities = get_cities(db)
+
+    couriers = db.scalars(select(User).join(User.profile).where(Profile.is_courier)).all()
+
+    context = {
+        'title': 'Заказы',
+        'orders': orders,
+        'cities': cities,
+        'couriers': couriers,
+        'cart_items_count': request.session.get("cart_items_count", 0),
+        'user': user
+    }
+    return templates.TemplateResponse(request, "/order/orders_manager.html", context)
+
+
+@router.post("/assign_courier/{order_id}")
+async def assign_courier(request: Request, order_id: int, courier_id: int = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    try:
+        # Получаем заказ по order_id
+        order = db.query(Order).filter(
+            Order.id == order_id).one()  # Используем метод one() для получения одного результата
+        # Получаем курьера по courier_id
+        courier = db.query(User).filter(User.id == courier_id).one()
+
+        # Назначение курьера и менеджера
+        order.courier = courier
+        order.manager = user
+
+        db.commit()  # Сохраняем изменения
+
+        message = f'Курьер {courier.username} назначен для выполнения заказа {order.number}.'
+    except Order.DoesNotExist:
+        message = 'Заказ не найден.'
+    except User.DoesNotExist:
+        message = 'Курьер не найден.'
+    except Exception as e:
+        message = f'Ошибка: {str(e)}'
+    # Инициализируем список сообщений в сессии, если он еще не существует
+    if 'messages' not in request.session:
+        request.session['messages'] = []
+        request.session['messages'].append(message)  # Добавляем сообщение в список
+
+    return RedirectResponse(url="/order/manager", status_code=302)
+
+
+@router.get("/courier")
+async def courier_orders(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    if not user.profile.is_courier and not user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not a courier")
+
+    # Устанавливаем фильтры
+    if request.query_params.get('reset'):
+        request.session['date_filter'] = ""
+        request.session['courier_filter'] = "no_delivery"
+    else:
+        request.session['date_filter'] = request.query_params.get('date')
+        request.session['courier_filter'] = request.query_params.get('courier', 'no_delivery')
+
+    # Получение текущих значений фильтров
+    date_filter = request.query_params.get('date')
+    courier_filter = request.session.get('courier_filter', 'no_delivery')
+
+
+    # Фильтрация по курьеру
+    orders = db.query(Order).filter(Order.courier == user)
+
+    # Фильтрация по дате
+    if date_filter:
+        orders = orders.filter(Order.delivery_date == date_filter)
+
+    # Фильтрация по статусу доставки
+    if courier_filter == 'no_delivery':
+        orders = orders.filter(Order.is_delivered == False)
+    elif courier_filter == 'my_orders':
+        orders = orders.filter(Order.courier == user)
+
+
+    # Получение всех заказов в виде списка
+    orders = orders.all()
+
+    context = {
+        'title': 'Заказы',
+        'orders': orders,
+        'cart_items_count': request.session.get("cart_items_count", 0),
+        'user': user,
+        'date_filter': date_filter,
+        'courier_filter': courier_filter,
+        'current_time': datetime.now().strftime('%H:%M')
+    }
+    return templates.TemplateResponse(request, "/order/orders_courier.html", context)
+
+
+@router.post("/confirm_delivery/{order_id}")
+def confirm_delivery(request: Request, order_id: int, delivered_time: str = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+
+    # Попытка получить заказ по ID
+    order = db.query(Order).filter(Order.id == order_id).first()
+
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    try:
+        # Преобразование строки времени в объект datetime
+        delivered_time_dt = datetime.strptime(delivered_time, "%H:%M").replace(year=datetime.now().year,
+                                                                               month=datetime.now().month,
+                                                                               day=datetime.now().day)
+
+        # Обновление информации о доставке
+        order.is_delivered = True
+        order.is_delivered_time = delivered_time_dt
+        db.commit()  # Применение изменений в базе данных
+        message = f'Время доставки заказа {order.number} - {order.is_delivered_time}.'
+        # Сохранение изменений в базе данных
+        db.commit()
+    except Exception as e:
+        db.rollback()  # Откат изменений в случае ошибки
+        raise HTTPException(status_code=500, detail=f"Error during delivery confirmation: {str(e)}")
+
+    if 'messages' not in request.session:
+        request.session['messages'] = []
+    request.session['messages'].append(message)  # Добавляем сообщение в список
+
+    # Получаем текущие фильтры из сессии
+    date_filter = request.session.get('date_filter')
+    courier_filter = request.session.get('courier_filter')
+
+    # Формирование URL для перенаправления
+    url = f"/order/courier?date={date_filter}&courier={courier_filter}"
+
+    return RedirectResponse(url=url, status_code=302)
 
 
 @router.get("/order_id")
@@ -112,11 +256,11 @@ async def order_create(request: Request,
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.put("/cancel")
+@router.put("/cancel/{order_id}")
 async def order_cancel(db: Annotated[Session, Depends(get_db)], order_id: int):
     existing_order = db.scalar(select(Order).where(Order.id == order_id))
     if existing_order:
-        existing_order.is_canceled=True
+        existing_order.is_canceled = True
         existing_order.update_status()
         db.commit()
         return {"status_code": status.HTTP_200_OK,

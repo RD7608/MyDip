@@ -1,0 +1,57 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Пользователи</h1>
+    {% if user.is_authenticated() %}
+
+    <style>
+        table {
+            width: 100%; /* Занимает всю ширину контейнера */
+            border-collapse: collapse; /* Убирает отступы между границами ячеек */
+        }
+        th, td {
+            border: 1px solid #ddd; /* Добавление рамки */
+            padding: 8px; /* Внутренний отступ */
+            text-align: left; /* Выравнивание текста по левому краю */
+            white-space: nowrap; /* Запрет на перенос текста в ячейках */
+        }
+        th {
+            background-color: #f2f2f2; /* Цвет фона для заголовков */
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1; /* Цвет при наведении на строку */
+        }
+
+        .canceled {
+            background-color: #ffcccc; /* Цвет фона для отмененных заказов */
+        }
+    </style>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Пользователь</th>
+            <th>Емайл</th>
+            <th>Профиль</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td><a href="/user/profile/{{ user.id }}">Профиль</a></td>
+        </tr>
+
+        <tr>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+    <p>Чтобы работать с пользователями, вам необходимо <a href="/user/login">войти</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

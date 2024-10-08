@@ -3,8 +3,6 @@
 {% block content %}
 <div class="container">
     <h1>Заказы менеджера</h1>
-
-    {% if user.is_authenticated %}
     <form method="GET" class="filter-form" style="display: inline;">
         <label for="date">Дата:</label>
         <input type="date" name="date" value="{{ date_filter }}" />
@@ -13,7 +11,7 @@
         <select name="city">
             <option value="all" {% if city_filter == "all" %}selected{% endif %}>Все города</option>
             {% for city in cities %}
-            <option value="{{ city.id }}" {% if city_filter|stringformat:"s" == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+            <option value="{{ city.id }}" {% if city_filter == city %}selected{% endif %}>{{ city.name }}</option>
             {% endfor %}
         </select>
 
@@ -26,6 +24,7 @@
         <button type="submit">Фильтровать</button>
         <button type="submit" name="reset" value="true">Сброс</button>
     </form>
+
 
     <style>
         table {
@@ -72,14 +71,13 @@
         <tbody>
         {% for order in orders %}
         <tr>
-            <td class="{% if order.is_canceled %}canceled{% endif %}">{{ order.order_number }}</td>
+            <td class="{% if order.is_canceled %}canceled{% endif %}">{{ order.number }}</td>
             <td>{{ order.city.abbreviation}}</td>
             <td>{{ order.total_price }}</td>
-            <td>{{ order.delivery_date|date:"d-m-Y" }}</td>
-            <td>{{ order.manager.username}}</td>
+            <td>{{ order.delivery_date }}</td>
+            <td>{{ order.manager.username if order.manager else "Не назначен" }}</td>
             <td>
-                <form method="POST" action="{% url 'assign_courier' order.id %}">
-                    {% csrf_token %}
+                <form method="POST" action="/order/assign_courier/{{ order.id }}">
                     <select name="courier_id">
                         <option value="">Выберите курьера</option>
                         {% for courier in couriers %}
@@ -91,23 +89,15 @@
                 </form>
             </td>
             <td>
-                <form method="POST" action="{% url 'order_cancel' order.id %}">
-                    {% csrf_token %}
+                <form method="POST" action="/order/cancel/{{ order.id }}">
                     {% if not order.is_canceled %}
                         <button type="submit">❌</button>
                     {% endif %}
                 </form>
             </td>
         </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7">Здесь нет заказов.</td>
-        </tr>
         {% endfor %}
         </tbody>
     </table>
-    {% else %}
-    <p>Чтобы обрабатывать заказы, вам необходимо <a href="{% url 'registration' %}">зарегистрироваться</a>.</p>
-    {% endif %}
 </div>
 {% endblock %}

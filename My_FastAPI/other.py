@@ -16,8 +16,8 @@ def get_current_user(request: Request, db: Session) -> User:
     """
     # Получение id пользователя из сессии
     user_id = request.session.get('user_id')
-    if user_id is not None:
-        return db.query(User).filter(User.id == user_id).first()
+    if user_id is not None:  # Если в сессии есть user_id, то возвращаем пользователя
+        return db.query(User).filter(User.id == user_id).first()  #
 
     # Если в сессии нет user_id, то возвращаем анонимного пользователя
     # (созданного заранее в базе)

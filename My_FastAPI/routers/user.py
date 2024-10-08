@@ -33,15 +33,20 @@ async def register_user(request: Request,
                         email: str = Form(...),
                         password: str = Form(...)
                         ):
-    # проверяем есть ли такой пользователь
+    # ищем пользователя в базе по email (в базе это поле уникально)
     existing_user = db.query(User).filter(User.email == email).first()
-    user = get_current_user(request, db)
-    if existing_user:
+    message = ""
+    if email == "" or password == "" or username == "anonymous":
+        message = "Нельзя создать пользователя! (anonymous, с пустой почтой или паролем)"
+    elif existing_user:
+        message = "Пользователь с таким email уже существует."
+
+    if message != "":
         return templates.TemplateResponse("/users/register.html",
                                           {"request": request,
-                                           "error": "Пользователь с таким email уже существует.",
+                                           "error": message,
                                            "cart_items_count": request.session.get("cart_items_count", 0),
-                                           "user": user})
+                                           "user": get_current_user(request, db)})
 
     # хешируем пароль
     hashed_password = pwd_context.hash(password)
@@ -92,10 +97,7 @@ async def post_login(request: Request, username: str = Form(...), password: str 
         raise HTTPException(status_code=400, detail="Неправильный логин или пароль")
 
     request.session['user_id'] = user.id
-    return templates.TemplateResponse("/users/profile.html",
-                                      {"request": request,
-                                       "cart_items_count": request.session.get("cart_items_count", 0),
-                                       "user": user})
+    return RedirectResponse(url=f"/user/profile/{user.id}", status_code=302)
 
 
 @router.get("/logout", response_class=HTMLResponse)
@@ -108,10 +110,19 @@ async def logout(request: Request, db: Annotated[Session, Depends(get_db)]):
                                        "user": user})
 
 
-@router.get("/profile", response_class=HTMLResponse)
-async def get_profile(request: Request, db: Annotated[Session, Depends(get_db)], ):
+@router.get("/profile/{user_id}", response_class=HTMLResponse)
+async def get_profile(request: Request, db: Annotated[Session, Depends(get_db)], user_id: int = None):
     messages = request.session.get('messages', [])
+
     user = get_current_user(request, db)  # получаем текущего пользователя
+    if not user.is_authenticated():
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    print(user_id)
+    if not user_id:  # если пользователь не передан
+        user_id = user.id
+
+    user_form = db.query(User).filter(User.id == user_id).first()
+
     cities = get_cities(db)  # получаем список городов
 
     return templates.TemplateResponse("/users/profile.html",
@@ -119,6 +130,7 @@ async def get_profile(request: Request, db: Annotated[Session, Depends(get_db)],
                                        "cities": cities,
                                        "cart_items_count": request.session.get("cart_items_count", 0),
                                        "user": user,
+                                       "user_form": user_form,
                                        "messages": messages})
 
 
@@ -131,58 +143,88 @@ async def update_form(request: Request,
                       customer_name: str = Form(...),
                       city: int = Form(...),
                       address: str = Form(...),
-                      phone: str = Form(...)
-                      ):
+                      phone: str = Form(...),
+                      is_manager: bool = Form(default=False),
+                      is_courier: bool = Form(default=False),
+                      user_id: int = Form(...)):
+
+    try:
+        user = get_current_user(request, db)  # получаем текущего пользователя
+        if not user.is_authenticated():
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
+        if not user_id:
+            raise HTTPException(status_code=401, detail="user_id is required")
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail='Пользователь не найден')
+
+        if user:
+            if user.is_admin:
+                is_manager = True
+                is_courier = True
+
+
+            # Обновление пользователя
+            db.execute(
+                update(User)
+                .where(User.id == user_id)
+                .values(username=username)
+            )
+
+            # Обновление профиля - связываем профиль с пользователем через user_id
+            db.execute(
+                update(Profile)
+                .where(Profile.user_id == user_id)
+                .values(
+                    firstname=firstname,
+                    lastname=lastname,
+                    customer_name=customer_name,
+                    city_id=city,
+                    address=address,
+                    phone=phone,
+                    is_manager=is_manager,
+                    is_courier=is_courier
+                )
+            )
+            db.commit()
+
+            message = f"Профиль {user.email} был обновлен"
+            # Инициализируем список сообщений в сессии, если он еще не существует
+            if 'messages' not in request.session:
+                request.session['messages'] = []
+            request.session['messages'].append(message)  # Добавляем сообщение в список
+
+            return RedirectResponse(url=f"/user/profile/{user.id}", status_code=302)
+
+        else:
+            raise HTTPException(status_code=404, detail='Пользователь не найден')
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/")
+async def get_user(request: Request, db: Annotated[Session, Depends(get_db)]):
     user = get_current_user(request, db)
-    if not user.is_authenticated():
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if user.is_admin:
+        users = db.query(User).all()
 
-    existing_user = db.scalar(select(User).where(User.id == user.id))
-    if existing_user:
-        db.execute(update(User).where(User.id == user.id).values(username=username))
-        db.commit()
-        db.execute(update(Profile).where(User.id == user.id).values(firstname=firstname,
-                                                                    lastname=lastname,
-                                                                    customer_name=customer_name,
-                                                                    city_id=city,
-                                                                    address=address,
-                                                                    phone=phone))
-        db.commit()
+        context = {
+            "request": request,
+            "users": users,
+            "user": user,
+            "title": "Пользователи",
+        }
+        return templates.TemplateResponse("/users/users.html", context)
 
-        message = f"Профиль {user.email} был обновлен"
-        # Инициализируем список сообщений в сессии, если он еще не существует
-        if 'messages' not in request.session:
-            request.session['messages'] = []
-        request.session['messages'].append(message)  # Добавляем сообщение в список
+    message = f"Вы не администратор"
+    # Инициализируем список сообщений в сессии, если он еще не существует
+    if 'messages' not in request.session:
+        request.session['messages'] = []
+    request.session['messages'].append(message)  # Добавляем сообщение в список
 
-        return RedirectResponse(url="/user/profile", status_code=302)
-
-    else:
-        raise HTTPException(status_code=404, detail='Пользователь не найден')
-
-
-@router.put("/update/{user_id}")
-
-
-async def update_user(db: Annotated[Session, Depends(get_db)], user_id: int, user: UpdateUser):
-    existing_user = db.scalar(select(User).where(User.id == user_id))
-    if existing_user:
-        db.execute(update(User).where(User.id == user_id).values(username=user.username))
-        db.commit()
-        db.execute(update(Profile).where(User.id == user_id).values(firstname=user.firstname,
-                                                                    lastname=user.lastname,
-                                                                    customer_name=user.customer_name,
-                                                                    city_id=user.city,
-                                                                    address=user.address,
-                                                                    phone=user.phone))
-
-        db.commit()
-
-        return {"status_code": status.HTTP_200_OK,
-                "transaction": "Пользователь обновлён!"}
-    else:
-        raise HTTPException(status_code=404,
-                            detail="Пользователь не найден")
+    return RedirectResponse(url=f"/user/profile/{user.id}", status_code=302)
 
 
 @router.delete("/delete")

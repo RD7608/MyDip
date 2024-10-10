@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import insert, select, update, delete
 from typing import Annotated
 from sqlalchemy import exc
-from passlib.context import CryptContext
+
 
 from backend.db_depends import get_db
 from models import User, Profile, Order
@@ -13,8 +13,6 @@ from schemas import CreateUser, UpdateUser
 from other import get_current_user, templates, get_cities
 
 router = APIRouter(prefix="/user", tags=["user"])
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.get("/register", response_class=HTMLResponse)
@@ -48,14 +46,12 @@ async def register_user(request: Request,
                                            "cart_items_count": request.session.get("cart_items_count", 0),
                                            "user": get_current_user(request, db)})
 
-    # хешируем пароль
-    hashed_password = pwd_context.hash(password)
     # создаём пользователя
     try:
         new_user = User(
             username=username,
             email=email,
-            password=hashed_password,
+            password=password,
         )
         db.add(new_user)
         db.commit()
@@ -93,7 +89,7 @@ async def post_login(request: Request, username: str = Form(...), password: str 
                      db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == username).first()
 
-    if user is None or not pwd_context.verify(password, user.password):  # проверяем пароль
+    if user is None or not user.check_password(password):  # проверяем пароль
         raise HTTPException(status_code=400, detail="Неправильный логин или пароль")
 
     request.session['user_id'] = user.id

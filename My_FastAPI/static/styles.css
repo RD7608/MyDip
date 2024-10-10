@@ -155,7 +155,7 @@ footer a:hover {
 .add-to-cart {
     margin-left: 20px; /* Увеличиваем отступ между кнопкой и элементом 'Подробнее' */
     padding: 5px 10px; /* Добавляем внутренние отступы для кнопки */
-    background-color: grey; /* Цвет фона кнопки */
+    background-color: blue; /* Цвет фона кнопки */
     color: white; /* Цвет текста в кнопке */
     border: none; /* Убираем рамку */
     border-radius: 5px; /* Закругляем углы */

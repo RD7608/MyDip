@@ -85,9 +85,9 @@
     </nav>
 </header>
 
-<main role="main" class="content container">
+<main role="main" class="content container-fluid">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-12 col-md-8">
             {% if messages %}
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">
@@ -99,7 +99,7 @@
             {% block content %}{% endblock %}
         </div>
         {% if title != "Заказы" %}
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <div class="content-section">
                 <h3>График доставки:</h3>
                 <p>Доставка заявок осуществляется с понедельника по субботу во второй половине дня. </p>

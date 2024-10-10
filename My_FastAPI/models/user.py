@@ -1,7 +1,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
+from passlib.context import CryptContext
+
 from backend.db import Base
 from .order import Order
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class Profile(Base):
@@ -28,9 +32,9 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String)
-    email = Column(String, unique=True, index=True)
-    password = Column(String)  # пароль
+    username = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)  # пароль
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     profile = relationship('Profile', foreign_keys=[Profile.user_id], back_populates='user', uselist=False)  # профиль
@@ -38,6 +42,12 @@ class User(Base):
     orders = relationship('Order', foreign_keys=[Order.user_id], back_populates='user')
     managed_orders = relationship('Order', foreign_keys=[Order.manager_id], back_populates='manager')
     courier_orders = relationship('Order', foreign_keys=[Order.courier_id], back_populates='courier')
+
+    def __init__(self, username, email, password):
+        self.username = username
+        self.email = email
+        self.password = self.hash_password(password)
+
 
     def is_authenticated(self):
         # Проверяет, является ли пользователь аутентифицированным
@@ -48,3 +58,12 @@ class User(Base):
     def is_anonymous(self):
         """Проверяет, является ли пользователь анонимным"""
         return self.username == "anonymous"
+
+    def check_password(self, password):
+        # Проверяет, совпадает ли пароль с паролем пользователя
+        return pwd_context.verify(password, self.password)
+
+    @staticmethod
+    def hash_password(password):
+        # Хеширует пароль
+        return pwd_context.hash(password)

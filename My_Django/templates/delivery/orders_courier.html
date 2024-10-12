@@ -55,8 +55,8 @@
             <th>Дата</th>
             <th>Отметить время</th>
             <th>Адрес доставки</th>
-            <th>Доставлен</th>
-            <th>Время доставки</th>
+            <th>Курьер</th>
+            <th>Номер заказа</th>
         </tr>
         </thead>
         <tbody>
@@ -75,8 +75,8 @@
                 {% endif %}
             </td>
             <td>{{ order.address }}</td>
-            <td>{{ order.is_delivered }}</td>
-            <td>{{ order.is_delivered_time }}</td>
+            <td>{{ order.courier.username}}</td>
+            <td>{{ order.order_number }}</td>
 
         </tr>
         {% empty %}

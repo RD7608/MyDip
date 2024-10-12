@@ -43,7 +43,7 @@ class Order(Base):
         """Метод для обновления статуса заказа на основе текущих полей."""
         if self.is_canceled:
             self.is_new = False
-            self.is_delivered = False
+            self.is_delivered = True
 
         elif self.is_confirmed and not self.is_canceled:
             self.is_new = False

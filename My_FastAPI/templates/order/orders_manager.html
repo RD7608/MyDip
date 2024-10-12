@@ -11,7 +11,7 @@
         <select name="city">
             <option value="all" {% if city_filter == "all" %}selected{% endif %}>Все города</option>
             {% for city in cities %}
-            <option value="{{ city.id }}" {% if city_filter == city %}selected{% endif %}>{{ city.name }}</option>
+            <option value="{{ city.id }}" {% if city_filter|string == city.id|string %}selected{% endif %}>{{ city.name }}</option>
             {% endfor %}
         </select>
 
@@ -74,7 +74,7 @@
             <td class="{% if order.is_canceled %}canceled{% endif %}">{{ order.number }}</td>
             <td>{{ order.city.abbreviation}}</td>
             <td>{{ order.total_price }}</td>
-            <td>{{ order.delivery_date }}</td>
+            <td>{{ order.delivery_date.strftime("%d-%m-%Y") }}</td>
             <td>{{ order.manager.username if order.manager else "Не назначен" }}</td>
             <td>
                 <form method="POST" action="/order/assign_courier/{{ order.id }}">

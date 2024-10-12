@@ -1,6 +1,7 @@
 from fastapi import Request
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from models import City, Product, User
+from models import City, Product, User, Profile
 from fastapi.templating import Jinja2Templates
 from datetime import date, timedelta
 
@@ -17,11 +18,11 @@ def get_current_user(request: Request, db: Session) -> User:
     # Получение id пользователя из сессии
     user_id = request.session.get('user_id')
     if user_id is not None:  # Если в сессии есть user_id, то возвращаем пользователя
-        return db.query(User).filter(User.id == user_id).first()  #
+        return db.scalar(select(User).where(User.id == user_id))
 
     # Если в сессии нет user_id, то возвращаем анонимного пользователя
     # (созданного заранее в базе)
-    return db.query(User).filter(User.username == 'anonymous').first()
+    return db.scalar(select(User).where(User.username == 'anonymous'))
 
 
 def get_cart_items(cart, db: Session):
@@ -64,6 +65,17 @@ def get_cities(db: Session):
     return db.query(City).all()
 
 
+def get_couriers(db: Session):
+    """
+    Получение всех курьеров из базы данных.
+
+    :param db: Сессия SQLAlchemy
+    :return: Список курьеров
+    """
+
+    return db.scalars(select(User).join(User.profile).where(Profile.is_courier)).all()
+
+
 def get_products(db: Session, cart=None):
     """
     Получение продуктов из базы данных.
@@ -76,11 +88,15 @@ def get_products(db: Session, cart=None):
     """
     if cart is not None:
         product_ids = list(map(int, cart.keys()))  # Преобразуем ключи в целые числа для отбора товаров в запросе
-        # Получение товаров из базы данных используя полученные ключи
-        products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+        # Формируем запрос для получения товаров по их идентификаторам
+        stmt = select(Product).where(Product.id.in_(product_ids))
     else:
-        # Получение активных и доступных товаров из базы данных
-        products = db.query(Product).filter(Product.is_active, Product.is_available).all()
+        # Формируем запрос для получения активных и доступных товаров
+        stmt = select(Product).where(Product.is_active, Product.is_available)
+
+    # Выполняем запрос
+    products = db.execute(stmt).scalars().all()
+
     return products
 
 

@@ -8,7 +8,7 @@
         <label for="date">Дата:</label>
         <input type="date" name="date" value="{{ date_filter }}" />
 
-        <label for="courier">Заказы:</label>
+        <label for="courier">Мои заказы:</label>
         <select name="courier">
             <option value="my_orders" {% if courier_filter == 'my_orders' %}selected{% endif %}>Все заказы</option>
             <option value="no_delivery" {% if courier_filter == 'no_delivery' %}selected{% endif %}>Не доставленные</option>
@@ -54,14 +54,14 @@
             <th>Дата</th>
             <th>Отметить время</th>
             <th>Адрес доставки</th>
-            <th>Доставлен</th>
-            <th>Время доставки</th>
+            <th>Курьер</th>
+            <th>Номер заказа</th>
         </tr>
         </thead>
         <tbody>
         {% for order in orders %}
         <tr>
-            <td>{{ order.delivery_date }}</td>
+            <td>{{ order.delivery_date.strftime("%d-%m-%Y") }}</td>
             <td>
                 {% if not order.is_delivered %}
                 <form method="POST" action="confirm_delivery/{{ order.id }}">
@@ -69,12 +69,12 @@
                     <button type="submit" class="btn btn-success">Доставить</button>
                 </form>
                 {% else %}
-                <i> Доставлено {{ order.is_delivered_time }} </i>
+                <i>{% if order.is_canceled %} Отменен {%else%}Доставлено {{ order.is_delivered_time }}{% endif %}</i>
                 {% endif %}
             </td>
             <td>{{ order.address }}</td>
-            <td>{{ order.is_delivered }}</td>
-            <td>{{ order.is_delivered_time }}</td>
+            <td>{{ order.courier.username }}</td>
+            <td>{{ order.number }}</td>
 
         </tr>
         <tr>

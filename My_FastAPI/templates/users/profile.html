@@ -39,6 +39,11 @@
             <input type="checkbox" id="is_manager" name="is_manager" value="true" {% if user_form.profile.is_manager %}checked{%endif%}>
             <label for="is_courier">Курьер:</label>
             <input type="checkbox" id="is_courier" name="is_courier" value="true" {% if user_form.profile.is_courier %}checked{%endif%}>
+        {% else %}
+        <b>
+            {% if user_form.profile.is_manager %} Менеджер {%endif%}
+            {% if user_form.profile.is_courier %} Курьер {%endif%}
+        </b>
         {% endif %}
         <input type="hidden" id="user_id" name="user_id" value="{{ user_form.id }}">
         <br><br>
